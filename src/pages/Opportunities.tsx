@@ -7,10 +7,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useResumeUpload } from "@/hooks/useResumeUpload";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Linkedin } from "lucide-react";
 
 const Opportunities = () => {
   const { user, loading } = useAuth();
   const { uploadResume, uploading } = useResumeUpload();
+  const [email, setEmail] = useState('');
 
   const handleGitHubAuth = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
@@ -127,22 +130,34 @@ const Opportunities = () => {
           </button>
         </div>
 
-        <div className="text-base text-contribo-text mb-2">or</div>
+        <div className="text-base text-contribo-text mb-6">or</div>
 
-        <div className="text-sm flex items-center gap-2">
+        <div className="mb-6">
           <button
             onClick={handleLinkedInAuth}
-            className="text-contribo-text hover:underline transition-all duration-200"
+            className="inline-flex items-center justify-center px-6 py-3 bg-contribo-black text-white font-medium rounded hover:bg-gray-800 transition-colors duration-200"
           >
-            LinkedIn
+            <Linkedin className="w-4 h-4 mr-2" />
+            Connect with LinkedIn
           </button>
-          <span className="text-contribo-gray-muted">•</span>
+        </div>
+
+        <div className="text-base text-contribo-text mb-4">or</div>
+
+        <div className="flex flex-col items-center gap-4 max-w-sm w-full">
+          <Input
+            type="email"
+            placeholder="Enter your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full"
+          />
           <button
             onClick={() => document.getElementById('resumeInput')?.click()}
-            className="text-contribo-text hover:underline transition-all duration-200"
-            disabled={uploading}
+            className="inline-flex items-center justify-center px-6 py-3 bg-contribo-black text-white font-medium rounded hover:bg-gray-800 transition-colors duration-200 w-full"
+            disabled={uploading || !email.trim()}
           >
-            {uploading ? 'Uploading...' : 'Upload Resume'}
+            {uploading ? 'Uploading Resume...' : 'Upload Resume'}
           </button>
           <input
             type="file"
@@ -150,7 +165,7 @@ const Opportunities = () => {
             className="hidden"
             accept=".pdf,.doc,.docx"
             onChange={handleResumeUpload}
-            disabled={uploading}
+            disabled={uploading || !email.trim()}
           />
         </div>
 

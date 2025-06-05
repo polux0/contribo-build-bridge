@@ -8,11 +8,11 @@ export const useResumeUpload = () => {
   const [uploading, setUploading] = useState(false);
   const { user } = useAuth();
 
-  const uploadResume = async (file: File) => {
-    if (!user) {
+  const uploadResume = async (file: File, email?: string) => {
+    if (!user && !email) {
       toast({
-        title: "Authentication required",
-        description: "Please sign in to upload your resume.",
+        title: "Email required",
+        description: "Please provide your email to upload your resume.",
         variant: "destructive",
       });
       return false;
@@ -22,7 +22,8 @@ export const useResumeUpload = () => {
     
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      const userId = user?.id || 'anonymous';
+      const fileName = `${userId}/${Date.now()}.${fileExt}`;
       
       // Upload file to storage
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -33,15 +34,22 @@ export const useResumeUpload = () => {
         throw uploadError;
       }
 
+      // Get the public URL for the file
+      const { data: urlData } = supabase.storage
+        .from('resumes')
+        .getPublicUrl(uploadData.path);
+
       // Save file info to database
       const { error: dbError } = await supabase
         .from('resumes')
         .insert({
-          user_id: user.id,
+          user_id: user?.id || null,
           filename: file.name,
           file_path: uploadData.path,
           file_size: file.size,
           mime_type: file.type,
+          email: email || user?.email,
+          public_url: urlData.publicUrl,
         });
 
       if (dbError) {
@@ -67,5 +75,43 @@ export const useResumeUpload = () => {
     }
   };
 
-  return { uploadResume, uploading };
+  const getResumeUrl = async (filePath: string) => {
+    try {
+      const { data } = supabase.storage
+        .from('resumes')
+        .getPublicUrl(filePath);
+      
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Error getting resume URL:', error);
+      return null;
+    }
+  };
+
+  const downloadResume = async (filePath: string, filename: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('resumes')
+        .download(filePath);
+
+      if (error) throw error;
+
+      // Create a download link
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading resume:', error);
+      toast({
+        title: "Download failed",
+        description: "There was an error downloading the resume.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  return { uploadResume, uploading, getResumeUrl, downloadResume };
 };

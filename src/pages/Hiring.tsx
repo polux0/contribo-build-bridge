@@ -2,10 +2,19 @@
 import React, { useState } from 'react';
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import UploadModal from "@/components/UploadModal";
+import { useJobUpload } from "@/hooks/useJobUpload";
+import { Input } from "@/components/ui/input";
 
 const Hiring = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [email, setEmail] = useState('');
+  const { uploadJobDescription, uploading } = useJobUpload();
+
+  const handleJobDescriptionUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files && files[0]) {
+      await uploadJobDescription(files[0], email);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white font-inter text-contribo-text">
@@ -16,28 +25,37 @@ const Hiring = () => {
           Describe Your Ideal Candidate. Meet Them Instantly.
         </h2>
         
-        <div className="flex flex-col sm:flex-row items-center gap-4">
-          <a
-            href="#"
-            className="inline-flex items-center justify-center px-6 py-3 bg-contribo-black text-white font-medium rounded hover:bg-gray-800 transition-colors duration-200"
-          >
-            Find Talent Now
-          </a>
+        <div className="flex flex-col items-center gap-4 max-w-sm w-full">
+          <Input
+            type="email"
+            placeholder="Enter your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full"
+          />
           <button
-            onClick={() => setIsModalOpen(true)}
-            className="text-sm text-contribo-text hover:underline transition-all duration-200"
+            onClick={() => document.getElementById('jobDescriptionInput')?.click()}
+            className="inline-flex items-center justify-center px-6 py-3 bg-contribo-black text-white font-medium rounded hover:bg-gray-800 transition-colors duration-200 w-full"
+            disabled={uploading || !email.trim()}
           >
-            Or upload job description
+            {uploading ? 'Uploading Job Description...' : 'Upload Job Description'}
           </button>
+          <input
+            type="file"
+            id="jobDescriptionInput"
+            className="hidden"
+            accept=".pdf,.doc,.docx,.txt"
+            onChange={handleJobDescriptionUpload}
+            disabled={uploading || !email.trim()}
+          />
+        </div>
+
+        <div className="text-xs text-contribo-gray-submuted mt-6 max-w-xs text-center">
+          Upload your job description and we'll find the perfect candidates for you.
         </div>
       </main>
 
       <Footer />
-      
-      <UploadModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-      />
     </div>
   );
 };
