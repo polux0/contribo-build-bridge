@@ -44,7 +44,7 @@ const Opportunities = () => {
   const handleResumeUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files && files[0]) {
-      await uploadResume(files[0]);
+      await uploadResume(files[0], email);
     }
   };
 

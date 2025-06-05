@@ -9,6 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      job_descriptions: {
+        Row: {
+          email: string | null
+          file_path: string
+          file_size: number | null
+          filename: string
+          id: string
+          mime_type: string | null
+          public_url: string | null
+          uploaded_at: string
+        }
+        Insert: {
+          email?: string | null
+          file_path: string
+          file_size?: number | null
+          filename: string
+          id?: string
+          mime_type?: string | null
+          public_url?: string | null
+          uploaded_at?: string
+        }
+        Update: {
+          email?: string | null
+          file_path?: string
+          file_size?: number | null
+          filename?: string
+          id?: string
+          mime_type?: string | null
+          public_url?: string | null
+          uploaded_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -47,29 +80,35 @@ export type Database = {
       }
       resumes: {
         Row: {
+          email: string | null
           file_path: string
           file_size: number | null
           filename: string
           id: string
           mime_type: string | null
+          public_url: string | null
           uploaded_at: string
           user_id: string
         }
         Insert: {
+          email?: string | null
           file_path: string
           file_size?: number | null
           filename: string
           id?: string
           mime_type?: string | null
+          public_url?: string | null
           uploaded_at?: string
           user_id: string
         }
         Update: {
+          email?: string | null
           file_path?: string
           file_size?: number | null
           filename?: string
           id?: string
           mime_type?: string | null
+          public_url?: string | null
           uploaded_at?: string
           user_id?: string
         }

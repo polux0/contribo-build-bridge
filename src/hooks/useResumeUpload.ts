@@ -43,7 +43,7 @@ export const useResumeUpload = () => {
       const { error: dbError } = await supabase
         .from('resumes')
         .insert({
-          user_id: user?.id || null,
+          user_id: user?.id || 'anonymous',
           filename: file.name,
           file_path: uploadData.path,
           file_size: file.size,
