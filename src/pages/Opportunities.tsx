@@ -52,7 +52,10 @@ const Opportunities = () => {
   const handleResumeUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files && files[0]) {
-      if (!user && !validateEmail(email)) {
+      console.log('User state:', user);
+      console.log('Email value:', email);
+      
+      if (!user && (!email.trim() || !validateEmail(email))) {
         toast({
           title: "Invalid email",
           description: "Please enter a valid email address.",
@@ -61,7 +64,10 @@ const Opportunities = () => {
         return;
       }
 
-      const success = await uploadResume(files[0], email || user?.email);
+      const emailToUse = user?.email || email;
+      console.log('Email to use for upload:', emailToUse);
+      
+      const success = await uploadResume(files[0], emailToUse);
       if (success) {
         setHasResume(true);
       }

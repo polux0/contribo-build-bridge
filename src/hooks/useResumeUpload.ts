@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -9,7 +8,10 @@ export const useResumeUpload = () => {
   const { user } = useAuth();
 
   const uploadResume = async (file: File, email?: string) => {
+    console.log('uploadResume called with:', { file: file.name, email, user: user?.email });
+    
     if (!user && !email) {
+      console.log('No user and no email provided');
       toast({
         title: "Email required",
         description: "Please provide your email to upload your resume.",
@@ -25,36 +27,50 @@ export const useResumeUpload = () => {
       const userId = user?.id || 'anonymous';
       const fileName = `${userId}/${Date.now()}.${fileExt}`;
       
+      console.log('Uploading file:', fileName);
+      
       // Upload file to storage
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('resumes')
         .upload(fileName, file);
 
       if (uploadError) {
+        console.log('Upload error:', uploadError);
         throw uploadError;
       }
+
+      console.log('File uploaded successfully:', uploadData);
 
       // Get the public URL for the file
       const { data: urlData } = supabase.storage
         .from('resumes')
         .getPublicUrl(uploadData.path);
 
+      console.log('Public URL generated:', urlData.publicUrl);
+
       // Save file info to database
+      const resumeData = {
+        user_id: user?.id || 'anonymous',
+        filename: file.name,
+        file_path: uploadData.path,
+        file_size: file.size,
+        mime_type: file.type,
+        email: email || user?.email,
+        public_url: urlData.publicUrl,
+      };
+
+      console.log('Saving resume data to database:', resumeData);
+
       const { error: dbError } = await supabase
         .from('resumes')
-        .insert({
-          user_id: user?.id || 'anonymous',
-          filename: file.name,
-          file_path: uploadData.path,
-          file_size: file.size,
-          mime_type: file.type,
-          email: email || user?.email,
-          public_url: urlData.publicUrl,
-        });
+        .insert(resumeData);
 
       if (dbError) {
+        console.log('Database error:', dbError);
         throw dbError;
       }
+
+      console.log('Resume saved to database successfully');
 
       toast({
         title: "Resume uploaded successfully",
