@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -9,11 +9,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Linkedin } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 const Opportunities = () => {
   const { user, loading } = useAuth();
   const { uploadResume, uploading } = useResumeUpload();
   const [email, setEmail] = useState('');
+  const [hasResume, setHasResume] = useState(false);
+  const [checkingResume, setCheckingResume] = useState(false);
+
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   const handleGitHubAuth = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
@@ -44,11 +52,51 @@ const Opportunities = () => {
   const handleResumeUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files && files[0]) {
-      await uploadResume(files[0], email);
+      if (!user && !validateEmail(email)) {
+        toast({
+          title: "Invalid email",
+          description: "Please enter a valid email address.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const success = await uploadResume(files[0], email || user?.email);
+      if (success) {
+        setHasResume(true);
+      }
     }
   };
 
-  if (loading) {
+  // Check if user already has a resume
+  useEffect(() => {
+    const checkUserResume = async () => {
+      if (user) {
+        setCheckingResume(true);
+        try {
+          const { data, error } = await supabase
+            .from('resumes')
+            .select('id')
+            .eq('user_id', user.id)
+            .limit(1);
+
+          if (error) {
+            console.error('Error checking resume:', error);
+          } else {
+            setHasResume(data && data.length > 0);
+          }
+        } catch (error) {
+          console.error('Error checking resume:', error);
+        } finally {
+          setCheckingResume(false);
+        }
+      }
+    };
+
+    checkUserResume();
+  }, [user]);
+
+  if (loading || checkingResume) {
     return (
       <div className="min-h-screen bg-white font-inter text-contribo-text flex items-center justify-center">
         <div>Loading...</div>
@@ -63,11 +111,10 @@ const Opportunities = () => {
         
         <main className="flex flex-col items-center justify-center min-h-screen pt-16 text-center px-4">
           <h2 className="text-3xl md:text-4xl font-bold mb-8 max-w-2xl">
-            Welcome back! Ready to find your next opportunity?
+            Welcome back! Don't worry, we'll notify you as soon as we find the next opportunity, as we are doing things semi-automated at the moment!
           </h2>
           
-          <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600 mb-2">Signed in as: {user.email}</p>
+          <div className="mb-6">
             <Button
               onClick={() => supabase.auth.signOut()}
               variant="outline"
@@ -77,23 +124,25 @@ const Opportunities = () => {
             </Button>
           </div>
 
-          <div className="text-sm flex items-center gap-2">
-            <button
-              onClick={() => document.getElementById('resumeInput')?.click()}
-              className="text-contribo-text hover:underline transition-all duration-200"
-              disabled={uploading}
-            >
-              {uploading ? 'Uploading Resume...' : 'Upload Resume'}
-            </button>
-            <input
-              type="file"
-              id="resumeInput"
-              className="hidden"
-              accept=".pdf,.doc,.docx"
-              onChange={handleResumeUpload}
-              disabled={uploading}
-            />
-          </div>
+          {!hasResume && (
+            <div className="text-sm flex items-center gap-2">
+              <button
+                onClick={() => document.getElementById('resumeInput')?.click()}
+                className="text-contribo-text hover:underline transition-all duration-200"
+                disabled={uploading}
+              >
+                {uploading ? 'Uploading Resume...' : 'Upload Resume'}
+              </button>
+              <input
+                type="file"
+                id="resumeInput"
+                className="hidden"
+                accept=".pdf,.doc,.docx"
+                onChange={handleResumeUpload}
+                disabled={uploading}
+              />
+            </div>
+          )}
 
           <div className="text-xs text-contribo-gray-submuted mt-6 max-w-xs text-center">
             Our AI finds the best matches based on your real skills and experience.
@@ -151,11 +200,12 @@ const Opportunities = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full"
+            required
           />
           <button
             onClick={() => document.getElementById('resumeInput')?.click()}
-            className="inline-flex items-center justify-center px-6 py-3 bg-contribo-black text-white font-medium rounded hover:bg-gray-800 transition-colors duration-200 w-full"
-            disabled={uploading || !email.trim()}
+            className="inline-flex items-center justify-center px-6 py-3 bg-contribo-black text-white font-medium rounded hover:bg-gray-800 transition-colors duration-200 w-full disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={uploading || !email.trim() || !validateEmail(email)}
           >
             {uploading ? 'Uploading Resume...' : 'Upload Resume'}
           </button>
@@ -165,7 +215,7 @@ const Opportunities = () => {
             className="hidden"
             accept=".pdf,.doc,.docx"
             onChange={handleResumeUpload}
-            disabled={uploading || !email.trim()}
+            disabled={uploading || !email.trim() || !validateEmail(email)}
           />
         </div>
 
