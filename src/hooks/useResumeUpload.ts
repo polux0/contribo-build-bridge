@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -50,7 +51,7 @@ export const useResumeUpload = () => {
 
       // Save file info to database
       const resumeData = {
-        user_id: user?.id || 'anonymous',
+        user_id: user?.id || crypto.randomUUID(), // Generate a proper UUID for anonymous users
         filename: file.name,
         file_path: uploadData.path,
         file_size: file.size,
