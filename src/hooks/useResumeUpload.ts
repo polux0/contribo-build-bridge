@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,14 +7,11 @@ export const useResumeUpload = () => {
   const [uploading, setUploading] = useState(false);
   const { user } = useAuth();
 
-  const uploadResume = async (file: File, email?: string) => {
-    console.log('uploadResume called with:', { file: file.name, email, user: user?.email });
-    
-    if (!user && !email) {
-      console.log('No user and no email provided');
+  const uploadResume = async (file: File) => {
+    if (!user) {
       toast({
-        title: "Email required",
-        description: "Please provide your email to upload your resume.",
+        title: "Authentication required",
+        description: "Please sign in to upload your resume.",
         variant: "destructive",
       });
       return false;
@@ -25,8 +21,7 @@ export const useResumeUpload = () => {
     
     try {
       const fileExt = file.name.split('.').pop();
-      const userId = user?.id || 'anonymous';
-      const fileName = `${userId}/${Date.now()}.${fileExt}`;
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
       
       console.log('Uploading file:', fileName);
       
@@ -51,12 +46,12 @@ export const useResumeUpload = () => {
 
       // Save file info to database
       const resumeData = {
-        user_id: user?.id || crypto.randomUUID(), // Generate a proper UUID for anonymous users
+        user_id: user.id,
         filename: file.name,
         file_path: uploadData.path,
         file_size: file.size,
         mime_type: file.type,
-        email: email || user?.email,
+        email: user.email,
         public_url: urlData.publicUrl,
       };
 
