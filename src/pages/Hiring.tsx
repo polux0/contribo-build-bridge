@@ -85,7 +85,7 @@ const Hiring = () => {
             Share your opportunity, and we'll contact you as soon as we find a suitable match
           </h2>
           
-          <div className="flex flex-col items-center gap-4 max-w-sm w-full">
+          <div className="flex flex-col items-center gap-4 max-w-sm w-full mb-6">
             <button
               onClick={() => document.getElementById('jobDescriptionInput')?.click()}
               className="inline-flex items-center justify-center px-6 py-3 bg-contribo-black text-white font-medium rounded hover:bg-gray-800 transition-colors duration-200 w-full disabled:opacity-50 disabled:cursor-not-allowed"
@@ -101,10 +101,12 @@ const Hiring = () => {
               onChange={handleJobDescriptionUpload}
               disabled={uploading}
             />
+          </div>
 
+          <div className="mb-6">
             <button
               onClick={() => supabase.auth.signOut()}
-              className="inline-flex items-center justify-center px-6 py-3 bg-contribo-black text-white font-medium rounded hover:bg-gray-800 transition-colors duration-200 w-full"
+              className="inline-flex items-center justify-center px-6 py-3 bg-contribo-black text-white font-medium rounded hover:bg-gray-800 transition-colors duration-200"
             >
               Sign Out
             </button>
