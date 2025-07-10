@@ -9,6 +9,8 @@ import Index from "./pages/Index";
 import Opportunities from "./pages/Opportunities";
 import Hiring from "./pages/Hiring";
 import NotFound from "./pages/NotFound";
+import { Analytics } from '@vercel/analytics/react';
+
 
 const queryClient = new QueryClient();
 
@@ -28,7 +30,9 @@ const App = () => (
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
+    <Analytics />
   </QueryClientProvider>
+  
 );
 
 export default App;
