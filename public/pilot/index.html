@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Contribo — Hire Developers After Seeing How They Actually Build</title>
+  <meta name="description" content="Paid, real-work evaluations. Fully managed. Try it for one role and hire with signal instead of guesswork." />
+
+  <!-- Indexing: keep experiments out of search while testing -->
+  <meta name="robots" content="noindex, nofollow" />
+
+  <!-- Canonical + OG/Twitter for clean share previews -->
+  <link rel="canonical" href="https://www.contribo.xyz/pilot" />
+  <meta property="og:title" content="Hire developers after seeing how they actually build" />
+  <meta property="og:description" content="Paid, real-work evaluations. Fully managed. Try it for one role." />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Contribo" />
+  <meta property="og:url" content="https://www.contribo.xyz/pilot" />
+  <!-- Use an absolute URL so LinkedIn/Twitter fetch correctly -->
+  <meta property="og:image" content="https://www.contribo.xyz/pilot/og.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <!-- Optional: local favicon for this landing only -->
+  <link rel="icon" href="./favicon.svg" />
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.5; color: #0f0f0f; background: #fafafa; overflow-x: hidden;
+    }
+
+    .nav {
+      position: fixed; top: 0; width: 100%; padding: 20px 40px;
+      background: rgba(250, 250, 250, 0.8); backdrop-filter: blur(20px);
+      z-index: 100; border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+    .nav-content {
+      max-width: 1400px; margin: 0 auto; display: flex;
+      justify-content: space-between; align-items: center;
+    }
+    .logo { font-size: 24px; font-weight: 600; color: #0f0f0f; }
+    .nav-cta {
+      background: #0f0f0f; color: white; padding: 8px 20px; border-radius: 6px;
+      text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.2s ease;
+    }
+    .nav-cta:hover { background: #2a2a2a; transform: translateY(-1px); }
+
+    .hero { padding: 140px 40px 100px; max-width: 1400px; margin: 0 auto; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px; background: rgba(0,0,0,.04);
+      padding: 6px 12px; border-radius: 20px; font-size: 13px; color: #666; margin-bottom: 24px;
+    }
+    .hero-title {
+      font-size: clamp(48px, 8vw, 84px); font-weight: 600; line-height: 1.1;
+      color: #0f0f0f; margin-bottom: 24px; letter-spacing: -0.02em;
+    }
+    .hero-subtitle {
+      font-size: 20px; color: #666; max-width: 600px; margin-bottom: 40px; line-height: 1.4;
+    }
+    .hero-cta {
+      display: inline-flex; align-items: center; gap: 8px; background: #0f0f0f; color: #fff;
+      padding: 16px 32px; border-radius: 8px; text-decoration: none; font-weight: 500; font-size: 16px; transition: all .2s ease;
+    }
+    .hero-cta:hover { background: #2a2a2a; transform: translateY(-2px); }
+
+    .section { padding: 120px 40px; max-width: 1400px; margin: 0 auto; }
+    .section-sm { padding: 80px 40px; }
+    .section-header { margin-bottom: 60px; }
+    .section-title {
+      font-size: clamp(32px, 5vw, 48px); font-weight: 600; color: #0f0f0f;
+      margin-bottom: 16px; letter-spacing: -0.01em;
+    }
+    .section-desc { font-size: 18px; color: #666; max-width: 600px; }
+
+    .process-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; }
+    .process-card {
+      background: #fff; border: 1px solid rgba(0,0,0,.06); border-radius: 12px; padding: 32px;
+      transition: all .3s ease; position: relative; overflow: hidden;
+    }
+    .process-card:before {
+      content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    }
+    .process-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,.08); border-color: rgba(0,0,0,.12); }
+    .process-num { font-size: 14px; color: #999; font-weight: 500; margin-bottom: 12px; }
+    .process-title { font-size: 20px; font-weight: 600; color: #0f0f0f; margin-bottom: 12px; }
+    .process-desc { color: #666; line-height: 1.6; }
+    .highlight {
+      background: rgba(99,102,241,.08); color: #4338ca; padding: 12px 16px; border-radius: 6px; margin-top: 16px;
+      font-size: 14px; border: 1px solid rgba(99,102,241,.15);
+    }
+
+    .comparison-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-top: 40px; }
+    .comp-card {
+      background: #fff; border: 1px solid rgba(0,0,0,.06); border-radius: 12px; padding: 32px; position: relative; transition: all .2s ease;
+    }
+    .comp-card.traditional { border-top: 3px solid #dc2626; }
+    .comp-card.ours { border-top: 3px solid #059669; }
+    .comp-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.06); }
+    .comp-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+    .comp-icon { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .traditional .comp-icon { background: rgba(220,38,38,.1); color: #dc2626; }
+    .ours .comp-icon { background: rgba(5,150,105,.1); color: #059669; }
+    .comp-card-title { font-size: 18px; font-weight: 600; color: #0f0f0f; }
+    .comp-list { list-style: none; }
+    .comp-list li {
+      padding: 8px 0; font-size: 15px; color: #666; position: relative; padding-left: 20px;
+    }
+    .comp-list li:before {
+      content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+      width: 6px; height: 6px; border-radius: 50%;
+    }
+    .traditional .comp-list li:before { background: #dc2626; }
+    .ours .comp-list li:before { background: #059669; }
+
+    .results-visual {
+      display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 16px; margin: 40px 0;
+    }
+    .result-step {
+      display: flex; align-items: center; gap: 8px; background: #fff; padding: 12px 20px;
+      border-radius: 8px; border: 1px solid rgba(0,0,0,.06); font-weight: 500;
+    }
+    .result-num {
+      background: #0f0f0f; color: #fff; width: 24px; height: 24px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600;
+    }
+    .arrow { color: #999; font-size: 18px; }
+
+    .testimonials { display: grid; gap: 32px; }
+    .testimonial { background: #fff; border: 1px solid rgba(0,0,0,.06); border-radius: 12px; padding: 32px; position: relative; }
+    .quote { font-size: 18px; color: #0f0f0f; margin-bottom: 20px; line-height: 1.5; }
+    .author { font-weight: 600; color: #0f0f0f; margin-bottom: 4px; }
+    .company { color: #666; font-size: 14px; }
+    .company a { color: inherit; text-decoration: none; }
+
+    .cta-section {
+      background: #0f0f0f; color: #fff; text-align: center; padding: 80px 40px; border-radius: 16px; position: relative; overflow: hidden;
+    }
+    .cta-section:before {
+      content: ""; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,107,107,.1), rgba(78,205,196,.1)); pointer-events: none;
+    }
+    .cta-content { position: relative; z-index: 1; max-width: 600px; margin: 0 auto; }
+    .cta-title { font-size: 36px; font-weight: 600; margin-bottom: 16px; letter-spacing: -0.01em; }
+    .cta-desc { font-size: 18px; color: rgba(255,255,255,.8); margin-bottom: 32px; line-height: 1.5; }
+    .cta-btn {
+      background: #fff; color: #0f0f0f; padding: 16px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; display: inline-block; transition: all .2s ease;
+    }
+    .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,.2); }
+
+    .footer { padding: 60px 40px 40px; text-align: center; color: #666; font-size: 14px; }
+
+    @media (max-width: 768px) {
+      .nav { padding: 16px 20px; }
+      .hero, .section { padding-left: 20px; padding-right: 20px; }
+      .hero { padding-top: 120px; padding-bottom: 80px; }
+      .section { padding-top: 80px; padding-bottom: 80px; }
+      .comparison-grid { grid-template-columns: 1fr; }
+      .results-visual { flex-direction: column; align-items: stretch; }
+      .result-step { justify-content: center; }
+      .cta-section { margin-left: 40px; margin-right: 40px; padding: 60px 20px; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-content">
+      <div class="logo">Contribo</div>
+      <a href="https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ2oMnZQ7aa_oNvq19sTTR2mJTVYo9dqBH_e6Or6mSSoyVintxpIrmUMFNQwVDtn3inSMStvu6Cs"
+         class="nav-cta" target="_blank" rel="noopener noreferrer">Get Started</a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-badge"><span>🚀</span> Early Access Program</div>
+    <h1 class="hero-title">Hire developers after seeing how they actually build</h1>
+    <p class="hero-subtitle">Skip the guesswork. See real code, real problem-solving, real results. Fully managed technical assessments using your actual work.</p>
+    <a href="https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ2oMnZQ7aa_oNvq19sTTR2mJTVYo9dqBH_e6Or6mSSoyVintxpIrmUMFNQwVDtn3inSMStvu6Cs"
+       class="hero-cta" target="_blank" rel="noopener noreferrer">
+      Try for one role <span>→</span>
+    </a>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <h2 class="section-title">How it works</h2>
+      <p class="section-desc">We align with your stack, source candidates, run paid technical challenges, and deliver signal-rich reports. You focus on the final decision.</p>
+    </div>
+
+    <div class="process-grid">
+      <div class="process-card">
+        <div class="process-num">Step 1</div>
+        <h3 class="process-title">Sync on your role + flow</h3>
+        <p class="process-desc">We align with your stack, team culture, and hiring process. Interviews first? Culture last? All possible.</p>
+      </div>
+
+      <div class="process-card">
+        <div class="process-num">Step 2</div>
+        <h3 class="process-title">We source candidates</h3>
+        <p class="process-desc">We find aligned candidates from GitHub, our builder network, and referrals — or run the process with your existing applicants.</p>
+      </div>
+
+      <div class="process-card">
+        <div class="process-num">Step 3</div>
+        <h3 class="process-title">They complete a real task</h3>
+        <p class="process-desc">Pulled from your backlog or scoped by us to reflect your actual needs.</p>
+        <div class="highlight">Gig compensation is tailored to the task size — we'll help you price it fairly.</div>
+      </div>
+
+      <div class="process-card">
+        <div class="process-num">Step 4</div>
+        <h3 class="process-title">You get signal-rich summaries</h3>
+        <p class="process-desc">Concise reports with repo links, candidate walk-throughs, and evaluation notes.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-sm">
+    <div class="section-header">
+      <h2 class="section-title">Why this approach works</h2>
+      <p class="section-desc">Traditional hiring filters out great builders. This approach flips that.</p>
+    </div>
+
+    <div class="comparison-grid">
+      <div class="comp-card traditional">
+        <div class="comp-header">
+          <div class="comp-icon">❌</div>
+          <h3 class="comp-card-title">Traditional Hiring</h3>
+        </div>
+        <ul class="comp-list">
+          <li>Resume-based filtering</li>
+          <li>Whiteboard riddles</li>
+          <li>High time cost</li>
+          <li>Unpaid take-homes</li>
+          <li>Guesswork</li>
+        </ul>
+      </div>
+      <div class="comp-card ours">
+        <div class="comp-header">
+          <div class="comp-icon">✅</div>
+          <h3 class="comp-card-title">Our Approach</h3>
+        </div>
+        <ul class="comp-list">
+          <li>Real-work based validation</li>
+          <li>Backlog-level problem-solving</li>
+          <li>Fully managed</li>
+          <li>Paid task with clear expectations</li>
+          <li>Signal-rich reports</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-sm">
+    <div class="section-header">
+      <h2 class="section-title">Results from previous experiences</h2>
+      <p class="section-desc"><strong>Role: Fullstack Engineer</strong></p>
+    </div>
+
+    <div class="results-visual">
+      <div class="result-step"><div class="result-num">30</div><span>sourced</span></div>
+      <div class="arrow">→</div>
+      <div class="result-step"><div class="result-num">8</div><span>completed task</span></div>
+      <div class="arrow">→</div>
+      <div class="result-step"><div class="result-num">4</div><span>strong submissions</span></div>
+      <div class="arrow">→</div>
+      <div class="result-step"><div class="result-num">2</div><span>finalists</span></div>
+      <div class="arrow">→</div>
+      <div class="result-step"><div class="result-num">2</div><span>interviews</span></div>
+      <div class="arrow">→</div>
+      <div class="result-step"><div class="result-num">1</div><span>hire</span></div>
+    </div>
+  </section>
+
+  <section class="section section-sm">
+    <div class="section-header">
+      <h2 class="section-title">What teams say</h2>
+    </div>
+
+    <div class="testimonials">
+      <div class="testimonial">
+        <div class="quote">"The process filtered itself. We got great submissions without spending our time screening."</div>
+        <div class="author">CTO, Jump - AI Advisor</div>
+        <div class="company"><a href="https://jumpapp.com/" target="_blank" rel="noopener noreferrer">jumpapp.com</a></div>
+      </div>
+      <div class="testimonial">
+        <div class="quote">"Dev quality was night and day compared to our inbound resumes."</div>
+        <div class="author">Founder, Salary Guide</div>
+        <div class="company"><a href="https://salaryguide.com/" target="_blank" rel="noopener noreferrer">salaryguide.com</a></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-sm">
+    <div class="cta-section" id="cta">
+      <div class="cta-content">
+        <h2 class="cta-title">Try it for one role - no commitment</h2>
+        <p class="cta-desc">We're offering this manually with a few early teams. We'll scope, source, coordinate the challenge, and deliver summaries. You just review.</p>
+        <a href="https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ2oMnZQ7aa_oNvq19sTTR2mJTVYo9dqBH_e6Or6mSSoyVintxpIrmUMFNQwVDtn3inSMStvu6Cs"
+           class="cta-btn" target="_blank" rel="noopener noreferrer">Book a 15min intro</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>© 2025 Contribo. Made for builders, by builders.</p>
+  </footer>
+</body>
+</html>
