@@ -161,6 +161,41 @@
       .cta-section { margin-left: 40px; margin-right: 40px; padding: 60px 20px; }
     }
   </style>
+  <!-- Vercel Web Analytics (page views, referrers, top pages, etc.) -->
+<script>
+    window.va = window.va || function(){ (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
+  
+  <!-- (Optional) Vercel Speed Insights (Core Web Vitals & perf) -->
+  <script>
+    window.si = window.si || function(){ (window.siq = window.siq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/speed-insights/script.js"></script>
+  <!-- Put in <head> on /pilot -->
+<script defer data-domain="contribo.xyz" src="https://plausible.io/js/script.js"></script>
+<script>
+  // Track CTA clicks
+  addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.hero-cta,.nav-cta,.cta-btn').forEach(el => {
+      el.addEventListener('click', () => {
+        window.plausible && window.plausible('Pilot CTA Click', { props: { page: 'pilot' }});
+      });
+    });
+  });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const hasUtm = [...new URLSearchParams(location.search).keys()].some(k => k.startsWith('utm_'));
+      if (!hasUtm) return;
+      document.querySelectorAll('a[href*="calendar.google.com"]').forEach(a => {
+        const url = new URL(a.href);
+        new URLSearchParams(location.search).forEach((v, k) => url.searchParams.set(k, v));
+        a.href = url.toString();
+      });
+    });
+  </script>
+
 </head>
 <body>
   <nav class="nav">

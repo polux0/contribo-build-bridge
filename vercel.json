@@ -2,6 +2,8 @@
   "rewrites": [
     { "source": "/pilot", "destination": "/pilot/index.html" },
     { "source": "/pilot/(.*)", "destination": "/pilot/$1" },
+    { "source": "/reputation", "destination": "/reputation/index.html" },
+    { "source": "/reputation/(.*)", "destination": "/reputation/$1" },
 
     { "source": "/(.*)", "destination": "/" }
   ]

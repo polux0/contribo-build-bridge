@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CONTRIBO - Reputation Layer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .slide-in { animation: slideIn 0.6s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        .pulse-glow {
+            animation: pulseGlow 2s infinite;
+        }
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(79, 70, 229, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+        }
+        .contribution-bar {
+            transition: width 1s ease-out;
+        }
+        .verified-badge {
+            background: linear-gradient(45deg, #4F46E5, #7C3AED);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900">
+    <!-- CONTRIBO Logo Navigation -->
+    <div class="fixed top-4 left-4 z-40">
+        <a href="index.html" class="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+            <img src="images/contribo.png" alt="CONTRIBO" class="h-10 w-auto">
+            <span class="text-sm text-gray-600">← Back to Opportunities</span>
+        </a>
+    </div>
+
+    <!-- Main Container -->
+    <div class="min-h-screen">
+        <!-- Hero Section -->
+        <section class="pt-24 pb-12 px-6 bg-gradient-to-b from-white to-gray-50">
+            <div class="max-w-6xl mx-auto text-center">
+                <h1 class="text-5xl font-bold text-gray-900 mb-4 fade-in">
+                    Your Contribution Score
+                </h1>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto fade-in">
+                    Build your on-chain reputation through verified contributions. Real work, real impact, real value.
+                </p>
+            </div>
+        </section>
+
+        <!-- Score Overview -->
+        <section class="px-6 pb-12">
+            <div class="max-w-6xl mx-auto">
+                <div class="bg-white rounded-2xl shadow-lg p-8 fade-in">
+                    <div class="grid md:grid-cols-3 gap-8">
+                        <!-- Total Score -->
+                        <div class="text-center">
+                            <div class="relative inline-block">
+                                <div class="w-48 h-48 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center pulse-glow">
+                                    <div class="bg-white w-44 h-44 rounded-full flex items-center justify-center">
+                                        <div>
+                                            <div class="text-5xl font-bold text-gray-900">847</div>
+                                            <div class="text-sm text-gray-600 mt-1">Contribution Score</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center justify-center space-x-2">
+                                <span class="verified-badge text-white text-xs px-3 py-1 rounded-full">
+                                    ✓ Blockchain Verified
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Score Breakdown -->
+                        <div class="md:col-span-2">
+                            <h3 class="text-lg font-semibold mb-4">Score Components</h3>
+                            <div class="space-y-4">
+                                <!-- Direct Contributions -->
+                                <div>
+                                    <div class="flex justify-between mb-2">
+                                        <span class="text-sm font-medium">Direct Contributions</span>
+                                        <span class="text-sm text-gray-600">412 points</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-3">
+                                        <div class="contribution-bar bg-blue-500 h-3 rounded-full" style="width: 70%"></div>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">78 PRs merged • 156 issues resolved • 23 projects shipped</p>
+                                </div>
+
+                                <!-- Impact Signals -->
+                                <div>
+                                    <div class="flex justify-between mb-2">
+                                        <span class="text-sm font-medium">Impact Signals</span>
+                                        <span class="text-sm text-gray-600">289 points</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-3">
+                                        <div class="contribution-bar bg-green-500 h-3 rounded-full" style="width: 55%"></div>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">234 forks • 567 stars • 12 corporate adoptions</p>
+                                </div>
+
+                                <!-- Time-Weighted Value -->
+                                <div>
+                                    <div class="flex justify-between mb-2">
+                                        <span class="text-sm font-medium">Recent Activity Bonus</span>
+                                        <span class="text-sm text-gray-600">146 points</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-3">
+                                        <div class="contribution-bar bg-purple-500 h-3 rounded-full" style="width: 35%"></div>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">15 contributions in last 30 days</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Connect Accounts Section -->
+        <section class="px-6 pb-12">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-2xl font-bold mb-6">Connected Accounts</h2>
+                <div class="grid md:grid-cols-3 gap-4">
+                    <!-- GitHub -->
+                    <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold">GitHub</h3>
+                                    <p class="text-sm text-gray-600">@username</p>
+                                </div>
+                            </div>
+                            <span class="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">Connected</span>
+                        </div>
+                        <div class="text-sm text-gray-600">
+                            <p>234 contributions tracked</p>
+                            <p>Last sync: 2 hours ago</p>
+                        </div>
+                    </div>
+
+                    <!-- GitLab -->
+                    <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M22.65 14.39L12 22.13 1.35 14.39a.84.84 0 01-.3-.94l1.22-3.78 2.44-7.51A.42.42 0 014.82 2a.43.43 0 01.58 0 .42.42 0 01.11.18l2.44 7.49h8.1l2.44-7.51A.42.42 0 0118.6 2a.43.43 0 01.58 0 .42.42 0 01.11.18l2.44 7.51L23 13.45a.84.84 0 01-.35.94z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold">GitLab</h3>
+                                    <p class="text-sm text-gray-600">Not connected</p>
+                                </div>
+                            </div>
+                            <button class="text-xs text-indigo-600 bg-indigo-100 px-3 py-1 rounded hover:bg-indigo-200 transition">
+                                Connect
+                            </button>
+                        </div>
+                        <div class="text-sm text-gray-400">
+                            <p>No contributions tracked</p>
+                        </div>
+                    </div>
+
+                    <!-- Add More -->
+                    <div class="bg-gray-100 rounded-lg p-6 border-2 border-dashed border-gray-300 flex items-center justify-center">
+                        <button class="text-gray-600 hover:text-gray-800 transition">
+                            <div class="text-center">
+                                <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                                <span class="text-sm font-medium">Add Platform</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contribution Timeline -->
+        <section class="px-6 pb-12">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-2xl font-bold mb-6">Contribution Timeline</h2>
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <canvas id="contributionChart" width="400" height="100"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Verification History -->
+        <section class="px-6 pb-12">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-2xl font-bold mb-6">Recent Verifications</h2>
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="divide-y divide-gray-200">
+                        <!-- Verification Item -->
+                        <div class="p-6 hover:bg-gray-50 transition">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-semibold">Smart Contract Deployment</h3>
+                                        <p class="text-sm text-gray-600">Deployed DeFi protocol on Arbitrum • +45 points</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm text-gray-500">2 days ago</p>
+                                    <a href="#" class="text-xs text-indigo-600 hover:underline">View on Etherscan →</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- More verification items -->
+                        <div class="p-6 hover:bg-gray-50 transition">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-semibold">Open Source Contribution</h3>
+                                        <p class="text-sm text-gray-600">Merged PR to Uniswap V4 • +32 points</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm text-gray-500">5 days ago</p>
+                                    <a href="#" class="text-xs text-indigo-600 hover:underline">View on GitHub →</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-6 hover:bg-gray-50 transition">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-semibold">Bug Bounty Completion</h3>
+                                        <p class="text-sm text-gray-600">Found critical vulnerability in DeFi protocol • +58 points</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm text-gray-500">1 week ago</p>
+                                    <a href="#" class="text-xs text-indigo-600 hover:underline">View Details →</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works -->
+        <section class="px-6 pb-16 bg-gray-100">
+            <div class="max-w-6xl mx-auto pt-12">
+                <h2 class="text-3xl font-bold text-center mb-12">How CONTRIBO Reputation Works</h2>
+                <div class="grid md:grid-cols-4 gap-6">
+                    <!-- Step 1 -->
+                    <div class="bg-white rounded-lg p-6 text-center">
+                        <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-2xl font-bold text-indigo-600">1</span>
+                        </div>
+                        <h3 class="font-semibold mb-2">Connect Accounts</h3>
+                        <p class="text-sm text-gray-600">Link your GitHub, GitLab, and other developer accounts</p>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="bg-white rounded-lg p-6 text-center">
+                        <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-2xl font-bold text-indigo-600">2</span>
+                        </div>
+                        <h3 class="font-semibold mb-2">Track Contributions</h3>
+                        <p class="text-sm text-gray-600">We analyze your commits, PRs, and project impact</p>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="bg-white rounded-lg p-6 text-center">
+                        <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-2xl font-bold text-indigo-600">3</span>
+                        </div>
+                        <h3 class="font-semibold mb-2">Verify On-Chain</h3>
+                        <p class="text-sm text-gray-600">Key achievements are timestamped on blockchain</p>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div class="bg-white rounded-lg p-6 text-center">
+                        <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-2xl font-bold text-indigo-600">4</span>
+                        </div>
+                        <h3 class="font-semibold mb-2">Build Reputation</h3>
+                        <p class="text-sm text-gray-600">Your score grows with quality contributions over time</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Initialize contribution timeline chart
+        const ctx = document.getElementById('contributionChart').getContext('2d');
+        const contributionChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                datasets: [{
+                    label: 'Contribution Score',
+                    data: [320, 345, 380, 390, 420, 485, 520, 580, 640, 720, 790, 847],
+                    borderColor: 'rgb(79, 70, 229)',
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Animate contribution bars on scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const bars = entry.target.querySelectorAll('.contribution-bar');
+                    bars.forEach((bar, index) => {
+                        setTimeout(() => {
+                            bar.style.width = bar.style.width;
+                        }, index * 200);
+                    });
+                }
+            });
+        });
+
+        document.querySelectorAll('.contribution-bar').forEach(bar => {
+            const parent = bar.closest('div');
+            if (parent) observer.observe(parent);
+        });
+    </script>
+</body>
+</html>
