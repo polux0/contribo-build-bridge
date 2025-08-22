@@ -4,15 +4,18 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { useResumeUpload } from "@/hooks/useResumeUpload";
+import { useOpportunities } from "@/hooks/useOpportunities";
+import OpportunityCard from "@/components/OpportunityCard";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Linkedin } from "lucide-react";
+import { Linkedin, AlertCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 const Opportunities = () => {
   const { user, loading } = useAuth();
   const { uploadResume, uploading } = useResumeUpload();
+  const { opportunities, loading: opportunitiesLoading, error: opportunitiesError } = useOpportunities();
   const [hasResume, setHasResume] = useState(false);
   const [checkingResume, setCheckingResume] = useState(false);
 
@@ -93,7 +96,7 @@ const Opportunities = () => {
     checkUserResume();
   }, [user]);
 
-  if (loading || checkingResume) {
+  if (loading || checkingResume || opportunitiesLoading) {
     return (
       <div className="min-h-screen bg-white font-inter text-contribo-text flex items-center justify-center">
         <div>Loading...</div>
@@ -106,48 +109,78 @@ const Opportunities = () => {
       <div className="min-h-screen bg-white font-inter text-contribo-text">
         <Header />
         
-        <main className="flex flex-col items-center justify-center min-h-screen text-center px-4">
-          <h2 className="text-3xl md:text-4xl font-bold mb-8 max-w-2xl">
-            We'll notify you as soon as we find the next opportunity, as we are doing things semi-automated at the moment!
-          </h2>
-          
-          {!hasResume && (
-            <>
-              <h3 className="text-lg mb-8 max-w-2xl">
-                In case you'd like to upload your resume as additional context
-              </h3>
-
-              <div className="mb-6">
+        <main className="container mx-auto px-4 py-8">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl md:text-4xl font-bold mb-4">
+              Available Opportunities
+            </h1>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-6">
+              Discover gig opportunities that match your skills and interests
+            </p>
+            
+            {/* User Actions */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
+              {!hasResume && (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => document.getElementById('resumeInput')?.click()}
+                    className="inline-flex items-center justify-center px-4 py-2 bg-contribo-black text-white text-sm font-medium rounded hover:bg-gray-800 transition-colors duration-200"
+                    disabled={uploading}
+                  >
+                    {uploading ? 'Uploading...' : '📄 Upload Resume'}
+                  </button>
+                  <input
+                    type="file"
+                    id="resumeInput"
+                    className="hidden"
+                    accept=".pdf,.doc,.docx"
+                    onChange={handleResumeUpload}
+                    disabled={uploading}
+                  />
+                </div>
+              )}
+              
+              <div className="flex items-center gap-2">
                 <button
-                  onClick={() => document.getElementById('resumeInput')?.click()}
-                  className="inline-flex items-center justify-center px-6 py-3 bg-contribo-black text-white font-medium rounded hover:bg-gray-800 transition-colors duration-200"
-                  disabled={uploading}
+                  onClick={() => supabase.auth.signOut()}
+                  className="inline-flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded hover:bg-gray-200 transition-colors duration-200"
                 >
-                  {uploading ? 'Uploading Resume...' : 'Upload Resume'}
+                  🚪 Sign Out
                 </button>
-                <input
-                  type="file"
-                  id="resumeInput"
-                  className="hidden"
-                  accept=".pdf,.doc,.docx"
-                  onChange={handleResumeUpload}
-                  disabled={uploading}
-                />
               </div>
-            </>
-          )}
-
-          <div className="mb-6">
-            <button
-              onClick={() => supabase.auth.signOut()}
-              className="inline-flex items-center justify-center px-6 py-3 bg-contribo-black text-white font-medium rounded hover:bg-gray-800 transition-colors duration-200"
-            >
-              Sign Out
-            </button>
+            </div>
           </div>
 
-          <div className="text-xs text-contribo-gray-submuted mt-6 max-w-xs text-center">
-            We use advanced analytics to match you with opportunities that align with your actual skills and background.
+          {opportunitiesError && (
+            <div className="flex items-center justify-center mb-8">
+              <div className="flex items-center gap-2 text-red-600 bg-red-50 px-4 py-2 rounded-lg">
+                <AlertCircle className="w-4 h-4" />
+                <span>Error loading opportunities: {opportunitiesError}</span>
+              </div>
+            </div>
+          )}
+
+          {opportunities.length === 0 && !opportunitiesError ? (
+            <div className="text-center py-12">
+              <h2 className="text-2xl font-semibold mb-4">
+                No opportunities available at the moment
+              </h2>
+              <p className="text-gray-600 mb-8">
+                We'll notify you as soon as new opportunities become available!
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-6 max-w-4xl mx-auto">
+              {opportunities.map((opportunity) => (
+                <OpportunityCard key={opportunity.id} opportunity={opportunity} />
+              ))}
+            </div>
+          )}
+
+          <div className="mt-12 text-center">
+            <div className="text-xs text-contribo-gray-submuted max-w-xs mx-auto text-center">
+              We use advanced analytics to match you with opportunities that align with your actual skills and background.
+            </div>
           </div>
         </main>
       </div>

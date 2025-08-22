@@ -1,73 +1,138 @@
-# Welcome to your Lovable project
+# Contribo - Hire Developers After Seeing How They Build
 
-## Project info
+A modern web application for technical hiring and developer assessments, built with React, TypeScript, Vite, and Supabase.
 
-**URL**: https://lovable.dev/projects/e07c8af2-9f13-4b40-954d-0521ac4765b1
+## 🚀 Quick Start
 
-## How can I edit this code?
+### Prerequisites
+- Node.js (v18 or higher)
+- npm, yarn, or bun
+- Supabase CLI (optional, for local development)
 
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/e07c8af2-9f13-4b40-954d-0521ac4765b1) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+### One-Command Setup
+```bash
+# Complete setup including local Supabase
+./scripts/setup-complete.sh
 ```
 
-**Edit a file directly in GitHub**
+### Manual Setup
+```bash
+# 1. Install dependencies
+npm install
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+# 2. Set up environment
+cp env.example .env.local
+# Edit .env.local with your configuration
 
-**Use GitHub Codespaces**
+# 3. Start development server
+npm run dev:local
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 🏗️ Architecture  
 
-## What technologies are used for this project?
+- **Frontend**: React + TypeScript + Vite
+- **UI Components**: shadcn/ui + Tailwind CSS
+- **Backend**: Supabase (PostgreSQL + Auth + Storage)
+- **Deployment**: Vercel
+- **Analytics**: Vercel Analytics + Plausible
 
-This project is built with:
+## 🔧 Development
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Available Scripts
+- `npm run dev` - Start development server (production mode)
+- `npm run dev:local` - Start development server (local mode)
+- `npm run build` - Build for production
+- `npm run build:local` - Build for local environment
+- `npm run preview` - Preview production build
+- `npm run preview:local` - Preview local build
+- `npm run lint` - Run ESLint
 
-## How can I deploy this project?
+### Local Development with Supabase
+```bash
+# Start local Supabase
+supabase start
 
-Simply open [Lovable](https://lovable.dev/projects/e07c8af2-9f13-4b40-954d-0521ac4765b1) and click on Share -> Publish.
+# Get local credentials
+supabase status
 
-## Can I connect a custom domain to my Lovable project?
+# Update .env.local with local credentials
+# Then start your app
+npm run dev:local
+```
 
-Yes, you can!
+### OAuth Providers (Optional)
+Set up GitHub, Google, and LinkedIn OAuth for local development:
+```bash
+# Get setup instructions
+./scripts/setup-oauth.sh
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+# Follow detailed guide
+# See OAUTH_SETUP.md
+```
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## 📁 Project Structure
+
+```
+contribo-build-bridge/
+├── src/
+│   ├── components/     # React components
+│   ├── pages/         # Page components
+│   ├── contexts/      # React contexts
+│   ├── hooks/         # Custom hooks
+│   ├── integrations/  # External integrations
+│   └── lib/           # Utilities and config
+├── public/            # Static assets
+├── supabase/          # Supabase configuration
+├── scripts/           # Setup and utility scripts
+└── docs/              # Documentation
+```
+
+## 🌍 Environment Configuration
+
+The application supports multiple environments:
+
+### Local Development
+- Uses local Supabase instance
+- OAuth providers configured for localhost
+- Analytics disabled
+
+### Production
+- Uses hosted Supabase
+- OAuth providers configured for production domain
+- Analytics enabled
+
+## 📚 Documentation
+
+- [DEVELOPMENT.md](./DEVELOPMENT.md) - Detailed development guide
+- [ENVIRONMENT.md](./ENVIRONMENT.md) - Environment configuration
+- [OAUTH_SETUP.md](./OAUTH_SETUP.md) - OAuth provider setup
+
+## 🔐 Authentication
+
+Supports multiple authentication methods:
+- Email/Password
+- OAuth providers (GitHub, Google, LinkedIn)
+- Magic links
+
+## 🚀 Deployment
+
+The application is automatically deployed to Vercel when you push to the main branch.
+
+### Environment Variables
+Set these in your Vercel project:
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_KEY`
+- `VITE_ENV=production`
+- OAuth provider credentials (if using OAuth)
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the ISC License.

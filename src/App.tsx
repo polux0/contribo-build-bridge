@@ -9,7 +9,7 @@ import Index from "./pages/Index";
 import Opportunities from "./pages/Opportunities";
 import Hiring from "./pages/Hiring";
 import NotFound from "./pages/NotFound";
-import { Analytics } from '@vercel/analytics/react';
+import { Analytics } from './components/Analytics';
 
 
 const queryClient = new QueryClient();
