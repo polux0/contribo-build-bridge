@@ -32,3 +32,6 @@ dist-ssr
 # Cursor files
 .cursorindexingignore
 .specstory/
+
+# Backups
+/backups
