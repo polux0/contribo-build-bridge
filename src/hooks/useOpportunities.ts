@@ -25,25 +25,38 @@ export const useOpportunities = () => {
 
   useEffect(() => {
     const fetchOpportunities = async () => {
+      console.log('🔍 useOpportunities: Starting to fetch opportunities...');
+      
       try {
         setLoading(true);
         setError(null);
 
-        const { data, error } = await supabase
+        // Add timeout to prevent infinite loading - reduced to 2 seconds
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Query timeout after 2 seconds')), 2000); // Changed from 10000 to 2000
+        });
+
+        const queryPromise = supabase
           .from('opportunities')
-          .select('*')
-          .eq('status', 'open')
-          .order('created_at', { ascending: false });
+          .select('*');
+
+        console.log('🔍 useOpportunities: Fetching all opportunities...');
+        const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
+
+        console.log('🔍 useOpportunities: Query result:', { data, error });
 
         if (error) {
+          console.error('❌ useOpportunities: Query error:', error);
           throw error;
         }
 
+        console.log('✅ useOpportunities: Successfully fetched opportunities:', data);
         setOpportunities(data || []);
       } catch (err) {
-        console.error('Error fetching opportunities:', err);
+        console.error('❌ useOpportunities: Error fetching opportunities:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch opportunities');
       } finally {
+        console.log('🔍 useOpportunities: Setting loading to false');
         setLoading(false);
       }
     };
@@ -51,5 +64,6 @@ export const useOpportunities = () => {
     fetchOpportunities();
   }, []);
 
+  console.log('🔍 useOpportunities: Current state:', { opportunities, loading, error });
   return { opportunities, loading, error };
 }; 

@@ -3,13 +3,19 @@ import { Opportunity } from '@/hooks/useOpportunities';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ExternalLink, Calendar, DollarSign, GitBranch, Clock } from 'lucide-react';
+import { ExternalLink, Calendar, DollarSign, GitBranch, Clock, CheckCircle } from 'lucide-react';
+import { useApplicationFlow } from '@/hooks/useApplicationFlow';
+import { useApplicationStatus } from '@/hooks/useApplicationStatus';
+import { trackPH } from '@/lib/posthog-script';
 
 interface OpportunityCardProps {
   opportunity: Opportunity;
 }
 
 const OpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity }) => {
+  const { handleApply, canApply, statusMessage } = useApplicationFlow();
+  const { applicationStatus, loading: checkingStatus } = useApplicationStatus(opportunity.id);
+
   const formatDeadline = (deadline: string) => {
     const date = new Date(deadline);
     return date.toLocaleDateString('en-US', {
@@ -40,9 +46,71 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity }) => {
 
   const daysLeft = daysUntilDeadline();
 
+  const handleApplyClick = async () => {
+    // Track ApplyStarted event
+    trackPH("ApplyStarted", {
+      opportunity_id: opportunity.id,
+      opportunity_title: opportunity.title,
+      company_name: opportunity.company_name,
+      payout_amount: opportunity.payout_amount,
+      payout_token: opportunity.payout_token,
+    });
+
+    // Track ApplyClicked event (for external redirect)
+    trackPH("ApplyClicked", {
+      opportunity_id: opportunity.id,
+      opportunity_title: opportunity.title,
+      destination: "github_issue", // This redirects to GitHub issue
+    });
+
+    await handleApply({
+      id: opportunity.id,
+      title: opportunity.title
+    });
+  };
+
+  // Determine button state and text
+  const getButtonState = () => {
+    if (checkingStatus) {
+      return {
+        text: "Checking...",
+        disabled: true,
+        variant: "outline" as const,
+        icon: null
+      };
+    }
+
+    if (applicationStatus.hasApplied) {
+      return {
+        text: "Already Applied",
+        disabled: true,
+        variant: "outline" as const,
+        icon: <CheckCircle className="w-4 h-4 mr-2" />
+      };
+    }
+
+    if (!canApply) {
+      return {
+        text: "Apply Now",
+        disabled: true,
+        variant: "outline" as const,
+        icon: <GitBranch className="w-4 h-4 mr-2" />
+      };
+    }
+
+    return {
+      text: "Apply Now",
+      disabled: false,
+      variant: "default" as const,
+      icon: <GitBranch className="w-4 h-4 mr-2" />
+    };
+  };
+
+  const buttonState = getButtonState();
+
   return (
     <Card className="w-full max-w-2xl mx-auto hover:shadow-lg transition-shadow duration-200">
-      <CardHeader>
+      <CardHeader className="pt-6">
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <CardTitle className="text-xl font-semibold text-gray-900 mb-2">
@@ -63,7 +131,7 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity }) => {
         <div className="flex items-center gap-4 text-sm text-gray-500">
           <div className="flex items-center gap-1">
             <DollarSign className="w-4 h-4" />
-            <span className="font-medium text-green-600">
+            <span className="font-medium text-gray-500">
               {opportunity.payout_amount.toLocaleString()} {opportunity.payout_token}
             </span>
           </div>
@@ -91,7 +159,7 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity }) => {
               href={opportunity.repo_url} 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+              className="text-sm text-blue-600 hover:text-black flex items-center gap-1"
             >
               View Repository
               <ExternalLink className="w-3 h-3" />
@@ -104,7 +172,7 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity }) => {
               href={opportunity.issue_url} 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+              className="text-sm text-blue-600 hover:text-black flex items-center gap-1"
             >
               View Issue
               <ExternalLink className="w-3 h-3" />
@@ -118,11 +186,25 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity }) => {
                 href={opportunity.long_description_url} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                className="text-sm text-blue-600 hover:text-black flex items-center gap-1"
               >
                 View Full Description
                 <ExternalLink className="w-3 h-3" />
               </a>
+            </div>
+          )}
+
+          {/* Show application status if user has applied */}
+          {applicationStatus.hasApplied && (
+            <div className="flex items-center gap-2 mt-4 p-3 bg-gray-50 border border-gray-200 rounded-md">
+              <CheckCircle className="w-4 h-4 text-gray-600" />
+              <div>
+                <span className="text-sm font-medium text-gray-900">Application Submitted</span>
+                <p className="text-xs text-gray-600">
+                  Status: {applicationStatus.status?.replace('_', ' ')} • 
+                  Applied: {applicationStatus.appliedAt ? new Date(applicationStatus.appliedAt).toLocaleDateString() : 'Unknown'}
+                </p>
+              </div>
             </div>
           )}
         </div>
@@ -130,18 +212,14 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity }) => {
 
       <CardFooter className="flex gap-3">
         <Button 
-          asChild 
-          className="flex-1 bg-contribo-black hover:bg-gray-800"
+          onClick={handleApplyClick}
+          disabled={buttonState.disabled}
+          variant={buttonState.variant}
+          className={`flex-1 ${buttonState.disabled ? 'bg-gray-300 text-gray-500' : 'bg-contribo-black hover:bg-gray-800'}`}
+          title={applicationStatus.hasApplied ? "You have already applied for this opportunity" : statusMessage}
         >
-          <a 
-            href={opportunity.issue_url} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2"
-          >
-            <GitBranch className="w-4 h-4" />
-            Apply Now
-          </a>
+          {buttonState.icon}
+          {buttonState.text}
         </Button>
         
         {opportunity.long_description_url && (
