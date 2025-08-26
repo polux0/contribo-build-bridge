@@ -27,8 +27,11 @@ dist-ssr
 .env
 .env.local
 .env.production
-
+.env.local.backup
 
 # Cursor files
 .cursorindexingignore
 .specstory/
+
+# Backups
+/backups
