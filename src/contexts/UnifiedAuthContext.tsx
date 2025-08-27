@@ -330,10 +330,7 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
             return updatedUser;
           });
 
-          toast({
-            title: "Wallet created",
-            description: `Your ${walletType} wallet has been created and stored.`,
-          });
+          // Wallet created silently in background - no notification needed
         }
       } catch (error) {
         devError('❌ Error in storeWalletInDatabase:', error);
