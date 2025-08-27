@@ -397,7 +397,7 @@ const Apply: React.FC = () => {
               ) : !user?.email && !email.trim() ? (
                 "Email Required"
               ) : (
-                hasWallet ? "Submit Application" : "Set Up Wallet & Submit"
+                "Submit Application"
               )}
             </Button>
           </div>

@@ -9,7 +9,7 @@ export const privyConfigFinal = {
   config: {
     embeddedWallets: { 
       ethereum: { 
-        createOnLogin: 'users-without-wallets' 
+        createOnLogin: 'all-users' 
       } 
     },
     appearance: { 
