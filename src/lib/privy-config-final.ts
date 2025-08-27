@@ -13,7 +13,7 @@ export const privyConfigFinal = {
       } 
     },
     appearance: { 
-      showWalletLoginFirst: false
+      showWalletLoginFirst: false,
     }
   },
 }; 

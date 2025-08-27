@@ -6,6 +6,11 @@ export const privyConfigHiring = {
     google: { scope: 'email profile' },
     linkedin: { scope: 'r_liteprofile r_emailaddress' },
     github: { scope: 'read:user user:email' },
+    embeddedWallets: { 
+      ethereum: { 
+        createOnLogin: 'all-users' 
+      } 
+    },
     appearance: {
       theme: 'light',
       accentColor: '#000000',

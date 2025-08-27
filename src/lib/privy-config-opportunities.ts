@@ -4,6 +4,11 @@ export const privyConfigOpportunities = {
   config: {
     loginMethods: ['github'],
     github: { scope: 'read:user user:email' },
+    embeddedWallets: { 
+      ethereum: { 
+        createOnLogin: 'all-users' 
+      } 
+    },
     appearance: {
       theme: 'light',
       accentColor: '#000000',
