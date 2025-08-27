@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Linkedin, Mail } from "lucide-react";
+import { Linkedin, Mail, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { trackPH } from "@/lib/posthog-script";
 import { devLog, devError } from "@/lib/utils";
@@ -249,7 +249,7 @@ const Hiring = () => {
                 disabled={!selectedFile || uploading || (!user?.email && !email.trim())}
               >
                 {uploading ? (
-                  'Uploading Job Description...'
+                  'File is uploading...'
                 ) : !user?.email && !email.trim() ? (
                   "Email Required"
                 ) : !selectedFile ? (
