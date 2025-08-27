@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { devLog, devError } from '@/lib/utils';
 
 export interface Opportunity {
   id: string;
@@ -25,7 +26,7 @@ export const useOpportunities = () => {
 
   useEffect(() => {
     const fetchOpportunities = async () => {
-      console.log('🔍 useOpportunities: Starting to fetch opportunities...');
+      devLog('🔍 useOpportunities: Starting to fetch opportunities...');
       
       try {
         setLoading(true);
@@ -40,23 +41,23 @@ export const useOpportunities = () => {
           .from('opportunities')
           .select('*');
 
-        console.log('🔍 useOpportunities: Fetching all opportunities...');
+        devLog('🔍 useOpportunities: Fetching all opportunities...');
         const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
 
-        console.log('🔍 useOpportunities: Query result:', { data, error });
+        devLog('🔍 useOpportunities: Query result:', { data, error });
 
         if (error) {
-          console.error('❌ useOpportunities: Query error:', error);
+          devError('❌ useOpportunities: Query error:', error);
           throw error;
         }
 
-        console.log('✅ useOpportunities: Successfully fetched opportunities:', data);
+        devLog('✅ useOpportunities: Successfully fetched opportunities:', data);
         setOpportunities(data || []);
       } catch (err) {
-        console.error('❌ useOpportunities: Error fetching opportunities:', err);
+        devError('❌ useOpportunities: Error fetching opportunities:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch opportunities');
       } finally {
-        console.log('🔍 useOpportunities: Setting loading to false');
+        devLog('🔍 useOpportunities: Setting loading to false');
         setLoading(false);
       }
     };
@@ -64,6 +65,6 @@ export const useOpportunities = () => {
     fetchOpportunities();
   }, []);
 
-  console.log('🔍 useOpportunities: Current state:', { opportunities, loading, error });
+  devLog('🔍 useOpportunities: Current state:', { opportunities, loading, error });
   return { opportunities, loading, error };
 }; 

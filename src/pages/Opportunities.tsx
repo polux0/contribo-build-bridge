@@ -9,19 +9,24 @@ import OpportunityCard from "@/components/OpportunityCard";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Linkedin, AlertCircle } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Linkedin, AlertCircle, Github } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { trackPH } from "@/lib/posthog-script";
+import { devLog, devError } from "@/lib/utils";
 
 const Opportunities = () => {
   const { user, loading, signInWithPrivy, signOut } = useUnifiedAuth();
+  
+  // Check if user has GitHub access
+  const hasGithub = Boolean(user?.github_username);
   const { opportunities, loading: opportunitiesLoading, error: opportunitiesError } = useOpportunities();
   const { uploadResume, uploading } = useResumeUpload();
   const [hasResume, setHasResume] = useState(false);
   const [checkingResume, setCheckingResume] = useState(false);
 
   // Add this debugging log
-  console.log(' Opportunities page state:', {
+  devLog(' Opportunities page state:', {
     authLoading: loading,
     checkingResume,
     opportunitiesLoading,
@@ -40,20 +45,20 @@ const Opportunities = () => {
       
       await signInWithPrivy('github');
     } catch (error) {
-      console.error('GitHub login error:', error);
+      devError('GitHub login error:', error);
     }
   };
 
   const handleResumeUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files && files[0]) {
-      console.log('Starting resume upload for file:', files[0].name);
+      devLog('Starting resume upload for file:', files[0].name);
       const success = await uploadResume(files[0]);
       if (success) {
         setHasResume(true);
-        console.log('Resume upload successful');
+        devLog('Resume upload successful');
       } else {
-        console.log('Resume upload failed');
+        devLog('Resume upload failed');
       }
     }
   };
@@ -99,12 +104,12 @@ const Opportunities = () => {
           const { data, error } = await query;
 
           if (error) {
-            console.error('Error checking resume:', error);
+            devError('Error checking resume:', error);
           } else {
             setHasResume(data && data.length > 0);
           }
         } catch (error) {
-          console.error('Error checking resume:', error);
+          devError('Error checking resume:', error);
         } finally {
           setCheckingResume(false);
         }
@@ -129,7 +134,7 @@ const Opportunities = () => {
   }, [opportunitiesLoading, opportunities]);
 
   if (loading || checkingResume || opportunitiesLoading) {
-    console.log('🔍 Opportunities: Showing loading screen because:', {
+    devLog('🔍 Opportunities: Showing loading screen because:', {
       authLoading: loading,
       checkingResume,
       opportunitiesLoading
@@ -177,6 +182,61 @@ const Opportunities = () => {
                 </div>
               )}
             </div>
+            
+            {/* GitHub Connection Section for authenticated users without GitHub */}
+            {!hasGithub && (
+              <div className="mb-8">
+                <Card className="border-orange-200 max-w-2xl mx-auto">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-gray-900">
+                      <Github className="w-5 h-5 text-orange-600" />
+                      GitHub Account Required
+                    </CardTitle>
+                    <CardDescription>
+                      You need to connect your GitHub account to apply for opportunities. This helps us verify your skills and experience.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="p-4 bg-orange-50 border border-orange-200 rounded-md">
+                      <div className="flex items-start gap-3">
+                        <AlertCircle className="w-5 h-5 text-orange-600 mt-0.5" />
+                        <div>
+                          <p className="text-sm text-orange-800 font-medium">
+                            GitHub connection required
+                          </p>
+                          <p className="text-sm text-orange-700 mt-1">
+                            Click the button below to sign out and sign back in with GitHub to apply for opportunities.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <Button 
+                      onClick={async () => {
+                        try {
+                          await signOut();
+                          toast({
+                            title: "Signed out",
+                            description: "You can now sign back in with GitHub to apply for opportunities.",
+                          });
+                        } catch (error) {
+                          devError('Sign out error:', error);
+                          toast({
+                            title: "Sign out failed",
+                            description: "Please try again.",
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                      className="w-full bg-contribo-black hover:bg-gray-800"
+                    >
+                      <Github className="w-4 h-4 mr-2" />
+                      Sign Out & Sign In with GitHub
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </div>
 
           {opportunitiesError && (

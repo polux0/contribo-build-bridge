@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { toast } from '@/hooks/use-toast';
+import { devLog, devError } from '@/lib/utils';
 
 interface ApplicationData {
   opportunity_id: string;
@@ -22,7 +23,7 @@ export const useApplicationSubmission = () => {
     }
 
     try {
-      console.log('🔍 Submitting application:', {
+      devLog('🔍 Submitting application:', {
         opportunity_id: applicationData.opportunity_id,
         user_id: user.id,
         payload: applicationData.payload
@@ -40,7 +41,7 @@ export const useApplicationSubmission = () => {
         .single();
 
       if (error) {
-        console.error('❌ Error submitting application:', error);
+        devError('❌ Error submitting application:', error);
         toast({
           title: "Submission failed",
           description: "Failed to submit your application. Please try again.",
@@ -49,7 +50,7 @@ export const useApplicationSubmission = () => {
         return false;
       }
 
-      console.log('✅ Application submitted successfully:', data);
+      devLog('✅ Application submitted successfully:', data);
       
       // Call success callback if provided
       if (onSuccess) {
@@ -58,7 +59,7 @@ export const useApplicationSubmission = () => {
       
       return true;
     } catch (error) {
-      console.error('❌ Error submitting application:', error);
+      devError('❌ Error submitting application:', error);
       toast({
         title: "Submission failed",
         description: "An unexpected error occurred. Please try again.",

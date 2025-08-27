@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Linkedin, Mail } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { trackPH } from "@/lib/posthog-script";
+import { devLog, devError } from "@/lib/utils";
 
 const Hiring = () => {
   const { user, loading, updateUserEmail } = useUnifiedAuth();
@@ -23,9 +24,18 @@ const Hiring = () => {
 
   // Check if user needs to provide email
   useEffect(() => {
+    devLog('🔍 Hiring page - User state changed:', {
+      hasUser: !!user,
+      userEmail: user?.email,
+      showEmailInput,
+      userObject: user
+    });
+    
     if (user && !user.email && !showEmailInput) {
+      devLog('🔍 Showing email input - no email in user object');
       setShowEmailInput(true);
     } else if (user && user.email && showEmailInput) {
+      devLog('🔍 Hiding email input - email found in user object:', user.email);
       setShowEmailInput(false);
     }
   }, [user, showEmailInput]);
@@ -41,7 +51,7 @@ const Hiring = () => {
       // Directly open Privy modal with the hiring page configuration
       login();
     } catch (error) {
-      console.error('Error opening Privy modal:', error);
+      devError('Error opening Privy modal:', error);
       toast({
         title: "Authentication failed",
         description: "Failed to open authentication modal. Please try again.",
@@ -112,7 +122,7 @@ const Hiring = () => {
 
     // If user has entered an email but it's not saved to their profile, save it first
     if (email.trim() && !user?.email) {
-      console.log('🔍 Saving email to user profile...');
+      devLog('🔍 Saving email to user profile...');
       const emailSaved = await updateUserEmail(email.trim());
       if (!emailSaved) {
         toast({

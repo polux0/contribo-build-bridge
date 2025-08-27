@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { Github } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { devError } from '@/lib/utils';
 
 interface UnifiedAuthModalProps {
   isOpen: boolean;
@@ -27,7 +28,7 @@ export const UnifiedAuthModal: React.FC<UnifiedAuthModalProps> = ({
       await signInWithPrivy('github');
       onClose();
     } catch (error) {
-      console.error('Error with GitHub login:', error);
+      devError('Error with GitHub login:', error);
       toast({
         title: "Login failed",
         description: "Failed to sign in with GitHub. Please try again.",

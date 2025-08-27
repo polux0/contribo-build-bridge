@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
+import { devLog, devError } from '@/lib/utils';
 
 interface ApplicationStatus {
   hasApplied: boolean;
@@ -24,7 +25,7 @@ export const useApplicationStatus = (opportunityId?: string) => {
 
     setLoading(true);
     try {
-      console.log('🔍 Checking application status for:', {
+      devLog('🔍 Checking application status for:', {
         opportunityId,
         userId: user.id
       });
@@ -37,13 +38,13 @@ export const useApplicationStatus = (opportunityId?: string) => {
         .single();
 
       if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
-        console.error('❌ Error checking application status:', error);
+        devError('❌ Error checking application status:', error);
         setApplicationStatus({ hasApplied: false });
         return;
       }
 
       if (data) {
-        console.log('✅ Found existing application:', data);
+        devLog('✅ Found existing application:', data);
         setApplicationStatus({
           hasApplied: true,
           applicationId: data.id,
@@ -51,11 +52,11 @@ export const useApplicationStatus = (opportunityId?: string) => {
           appliedAt: data.created_at
         });
       } else {
-        console.log('✅ No existing application found');
+        devLog('✅ No existing application found');
         setApplicationStatus({ hasApplied: false });
       }
     } catch (error) {
-      console.error('❌ Error checking application status:', error);
+      devError('❌ Error checking application status:', error);
       setApplicationStatus({ hasApplied: false });
     } finally {
       setLoading(false);

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { toast } from '@/hooks/use-toast';
+import { devLog, devError } from '@/lib/utils';
 
 export const useApplicationFlow = () => {
   const {
@@ -30,7 +31,7 @@ export const useApplicationFlow = () => {
   }, [loading, user]);
 
   // Add debugging
-  console.log(' useApplicationFlow: Debug info:', {
+  devLog(' useApplicationFlow: Debug info:', {
     hasUser: !!user,
     userEmail: user?.email,
     githubUsername: user?.github_username,
@@ -42,7 +43,7 @@ export const useApplicationFlow = () => {
 
   // Check if user meets all requirements for application
   const canApply = useCallback(() => {
-    console.log('🔍 canApply check:', {
+    devLog('🔍 canApply check:', {
       hasUser: !!user,
       hasGithub,
       isReady,
@@ -75,17 +76,17 @@ export const useApplicationFlow = () => {
       return false;
     }
 
-    console.log('🔍 Setting up wallet for application...');
+    devLog('🔍 Setting up wallet for application...');
     
     try {
       // Use the setupWallet function from UnifiedAuthContext
       const walletSetup = await createWallet(); // This is aliased to setupWallet
       
       if (walletSetup) {
-        console.log('✅ Wallet setup completed successfully');
+        devLog('✅ Wallet setup completed successfully');
         return true;
       } else {
-        console.log('⚠️ Wallet setup failed');
+        devLog('⚠️ Wallet setup failed');
         toast({
           title: "Wallet setup failed",
           description: "Please try again or contact support.",
@@ -94,7 +95,7 @@ export const useApplicationFlow = () => {
         return false;
       }
     } catch (error) {
-      console.error('❌ Error in wallet setup:', error);
+      devError('❌ Error in wallet setup:', error);
       toast({
         title: "Wallet setup failed",
         description: "Please try again or contact support.",

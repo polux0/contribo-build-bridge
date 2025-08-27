@@ -15,6 +15,7 @@ import { CheckCircle, AlertCircle, Wallet, Github, Loader2, Mail } from 'lucide-
 import { toast } from '@/hooks/use-toast';
 import ApplicationSuccessModal from '@/components/ApplicationSuccessModal';
 import { trackPH } from '@/lib/posthog-script';
+import { devLog, devError } from '@/lib/utils';
 
 const Apply: React.FC = () => {
   const navigate = useNavigate();
@@ -39,6 +40,8 @@ const Apply: React.FC = () => {
     setupWalletForApplication
   } = useApplicationFlow();
 
+  const { signInWithPrivy, signOut } = useUnifiedAuth();
+
   const { opportunities } = useOpportunities();
   const { updateUserEmail } = useUnifiedAuth();
   const { submitApplication } = useApplicationSubmission();
@@ -56,16 +59,15 @@ const Apply: React.FC = () => {
   }, [user, showEmailInput]);
 
   useEffect(() => {
-    // Redirect if user can't apply
-    if (!loading && !canApply) {
+    // Show helpful message if user can't apply due to missing GitHub
+    if (!loading && user && !hasGithub) {
       toast({
-        title: "Requirements not met",
-        description: statusMessage,
+        title: "GitHub account required",
+        description: "You need to connect your GitHub account to apply. You can add it to your existing account.",
         variant: "destructive",
       });
-      navigate('/opportunities');
     }
-  }, [loading, canApply, statusMessage, navigate]);
+  }, [loading, user, hasGithub]);
 
   // Handle continue to application button click
   const handleContinueToApplication = async () => {
@@ -102,7 +104,7 @@ const Apply: React.FC = () => {
     }
 
     if (!hasWallet) {
-      console.log(' User has no wallet, setting up wallet first...');
+      devLog(' User has no wallet, setting up wallet first...');
       
       // Set up wallet (opens Privy modal, creates embedded if user closes modal)
       const walletSetup = await setupWalletForApplication();
@@ -129,13 +131,13 @@ const Apply: React.FC = () => {
     }
     
     // Proceed with application submission
-    console.log('🔍 Submitting application...');
+    devLog('🔍 Submitting application...');
     setIsSubmitting(true);
     
     try {
       // If user has entered an email but it's not saved to their profile, save it first
       if (email.trim() && !user?.email) {
-        console.log('🔍 Saving email to user profile...');
+        devLog('🔍 Saving email to user profile...');
         const emailSaved = await updateUserEmail(email.trim());
         if (!emailSaved) {
           toast({
@@ -163,7 +165,7 @@ const Apply: React.FC = () => {
         payload: payload
       }, () => {
         // Success callback - could be used to refresh application status
-        console.log('✅ Application submitted, status should be refreshed');
+        devLog('✅ Application submitted, status should be refreshed');
       });
 
       if (success) {
@@ -180,7 +182,7 @@ const Apply: React.FC = () => {
         setShowSuccessModal(true);
       }
     } catch (error) {
-      console.error('❌ Error in application submission:', error);
+      devError('❌ Error in application submission:', error);
       toast({
         title: "Submission failed",
         description: "Failed to submit your application. Please try again.",
@@ -311,6 +313,62 @@ const Apply: React.FC = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                     />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* GitHub Connection Section */}
+          {!hasGithub && (
+            <div className="mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-gray-900">
+                    <Github className="w-5 h-5 text-orange-600" />
+                    GitHub Account Required
+                  </CardTitle>
+                  <CardDescription>
+                    You need to connect your GitHub account to apply for opportunities. This helps us verify your skills and experience.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="p-4 bg-orange-50 border border-orange-200 rounded-md">
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="w-5 h-5 text-orange-600 mt-0.5" />
+                      <div>
+                        <p className="text-sm text-orange-800 font-medium">
+                          GitHub connection required
+                        </p>
+                        <p className="text-sm text-orange-700 mt-1">
+                          You can add GitHub to your existing account without losing your current login.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <Button 
+                      onClick={async () => {
+                        try {
+                          await signInWithPrivy('github');
+                        } catch (error) {
+                          devError('GitHub connection error:', error);
+                          toast({
+                            title: "GitHub connection failed",
+                            description: "Please try again or contact support.",
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                      className="w-full bg-contribo-black hover:bg-gray-800"
+                    >
+                      <Github className="w-4 h-4 mr-2" />
+                      Connect GitHub Account
+                    </Button>
+                    
+                                         <div className="text-xs text-gray-600 text-center">
+                       <p>Click the button above to connect your GitHub account securely.</p>
+                     </div>
                   </div>
                 </CardContent>
               </Card>

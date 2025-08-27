@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { config } from '@/lib/config';
 import { trackPH } from '@/lib/posthog-script';
+import { devLog, devError, devWarn } from '@/lib/utils';
 
 interface UnifiedUser {
   id: string;
@@ -69,8 +70,8 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [intendedDestination, setIntendedDestination] = useState<string | null>(null);
   const [hasAuthenticated, setHasAuthenticated] = useState(false);
 
-  console.log('UnifiedAuthProvider: Initializing with loading:', loading);
-  console.log('Config check:', { 
+  devLog('UnifiedAuthProvider: Initializing with loading:', loading);
+  devLog('Config check:', { 
     supabaseUrl: !!config.supabase.url, 
     supabaseKey: !!config.supabase.anonKey,
     privyAppId: !!import.meta.env.VITE_PRIVY_APP_ID 
@@ -87,12 +88,12 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
     connectWallet,
   } = usePrivy();
 
-  console.log('Privy state:', { privyReady, privyAuthenticated, hasUser: !!privyUser });
+  devLog('Privy state:', { privyReady, privyAuthenticated, hasUser: !!privyUser });
 
   // Immediate loading state check
   useEffect(() => {
     if (privyReady && !privyAuthenticated) {
-      console.log('Privy ready and no user authenticated, setting loading to false immediately');
+      devLog('Privy ready and no user authenticated, setting loading to false immediately');
       setLoading(false);
     }
   }, [privyReady, privyAuthenticated]);
@@ -100,7 +101,7 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
   // Handle case where user is already authenticated but Privy is not ready
   useEffect(() => {
     if (session && !privyReady) {
-      console.log('User authenticated with Supabase but Privy not ready, setting loading to false');
+      devLog('User authenticated with Supabase but Privy not ready, setting loading to false');
       setLoading(false);
     }
   }, [session, privyReady]);
@@ -112,7 +113,7 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
   // Fetch user profile from database
   const fetchUserProfile = useCallback(async (userId: string, authProvider: 'supabase' | 'privy') => {
     try {
-      console.log('🔍 fetchUserProfile: Starting query for userId:', userId, 'authProvider:', authProvider);
+      devLog('🔍 fetchUserProfile: Starting query for userId:', userId, 'authProvider:', authProvider);
       
       // Add timeout to prevent hanging
       const timeoutPromise = new Promise((_, reject) => {
@@ -127,17 +128,17 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
       const { data: profile, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
 
-      console.log('🔍 fetchUserProfile: Query result:', { profile, error });
+      devLog('🔍 fetchUserProfile: Query result:', { profile, error });
 
       if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
-        console.error('❌ Error fetching profile:', error);
+        devError('❌ Error fetching profile:', error);
         return null;
       }
 
-      console.log('🔍 fetchUserProfile: Returning profile:', profile);
+      devLog('🔍 fetchUserProfile: Returning profile:', profile);
       return profile;
     } catch (error) {
-      console.error('❌ Error fetching user profile:', error);
+      devError('❌ Error fetching user profile:', error);
       return null;
     }
   }, []);
@@ -145,12 +146,12 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
   // Update user email in database
   const updateUserEmail = useCallback(async (email: string) => {
     if (!user) {
-      console.error('❌ No user available to update email');
+      devError('❌ No user available to update email');
       return false;
     }
 
     try {
-      console.log('🔍 Updating user email:', email);
+      devLog('🔍 Updating user email:', email);
       
       const { data, error } = await supabase
         .from('profiles')
@@ -163,18 +164,18 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         .single();
 
       if (error) {
-        console.error('❌ Error updating email:', error);
+        devError('❌ Error updating email:', error);
         return false;
       }
 
-      console.log('✅ Email updated successfully:', data);
+      devLog('✅ Email updated successfully:', data);
       
       // Update the local user state
       setUser(prevUser => prevUser ? { ...prevUser, email } : null);
       
       return true;
     } catch (error) {
-      console.error('❌ Error updating email:', error);
+      devError('❌ Error updating email:', error);
       return false;
     }
   }, [user]);
@@ -182,7 +183,7 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
   // Create or update user profile in Supabase
   const createOrUpdateProfile = useCallback(async (userData: UnifiedUser, authProvider: 'supabase' | 'privy' = 'supabase') => {
     try {
-      console.log('🔍 createOrUpdateProfile: Starting for userData:', userData, 'authProvider:', authProvider);
+      devLog('🔍 createOrUpdateProfile: Starting for userData:', userData, 'authProvider:', authProvider);
       
       // Set the appropriate user ID fields based on auth provider
       let user_id: string | null = null;
@@ -199,7 +200,7 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
       // Check if we have existing profile data to preserve email
       let existingEmail: string | null = null;
       if (!userData.email) {
-        console.log('🔍 No email in userData, checking existing profile...');
+        devLog('🔍 No email in userData, checking existing profile...');
         try {
           const { data: existingProfile } = await supabase
             .from('profiles')
@@ -209,10 +210,10 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
           
           if (existingProfile?.email) {
             existingEmail = existingProfile.email;
-            console.log('🔍 Found existing email in database:', existingEmail);
+            devLog('🔍 Found existing email in database:', existingEmail);
           }
         } catch (error) {
-          console.log('🔍 No existing profile found or error fetching:', error);
+          devLog('🔍 No existing profile found or error fetching:', error);
         }
       }
 
@@ -231,7 +232,7 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         updated_at: new Date().toISOString(),
       };
 
-      console.log('🔍 Profile data to upsert:', profileData);
+      devLog('🔍 Profile data to upsert:', profileData);
 
       // Use upsert to handle both insert and update cases
       const { data, error } = await supabase
@@ -241,21 +242,21 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         .single();
 
       if (error) {
-        console.error('❌ Error upserting profile:', error);
+        devError('❌ Error upserting profile:', error);
         return null;
       }
       
-      console.log('✅ Profile upserted successfully:', data);
+      devLog('✅ Profile upserted successfully:', data);
       return data;
     } catch (error) {
-      console.error('❌ Error creating/updating profile:', error);
+      devError('❌ Error creating/updating profile:', error);
       return null;
     }
   }, []);
 
   // Monitor Privy wallet creation and store in database
   useEffect(() => {
-    console.log('🔍 Wallet monitoring useEffect triggered:', {
+    devLog('🔍 Wallet monitoring useEffect triggered:', {
       hasPrivyUser: !!privyUser,
       hasWalletAddress: !!privyUser?.wallet?.address,
       hasUser: !!user,
@@ -265,24 +266,24 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
     });
 
     if (!privyUser) {
-      console.log('❌ No privyUser available for wallet monitoring');
+      devLog('❌ No privyUser available for wallet monitoring');
       return;
     }
 
     if (!privyUser.wallet?.address) {
-      console.log('❌ No wallet address in privyUser');
+      devLog('❌ No wallet address in privyUser');
       return;
     }
 
     if (!user) {
-      console.log('❌ No user available for wallet monitoring');
+      devLog('❌ No user available for wallet monitoring');
       return;
     }
 
     const storeWalletInDatabase = async () => {
       try {
-        console.log('🔍 Detected wallet creation, storing in database...');
-        console.log('Wallet details:', {
+        devLog('🔍 Detected wallet creation, storing in database...');
+        devLog('Wallet details:', {
           address: privyUser.wallet.address,
           type: privyUser.wallet.walletClientType || 'embedded',
           userId: user.id,
@@ -292,7 +293,7 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         const walletAddress = privyUser.wallet.address;
         const walletType = privyUser.wallet.walletClientType || 'embedded';
 
-        console.log('🔍 About to update database with wallet info:', {
+        devLog('🔍 About to update database with wallet info:', {
           table: 'profiles',
           wallet_address: walletAddress,
           wallet_type: walletType,
@@ -310,13 +311,13 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
           .eq('user_id', user.id)
           .select(); // Add select to see what was updated
 
-        console.log('🔍 Database update result:', { data, error });
+        devLog('🔍 Database update result:', { data, error });
 
         if (error) {
-          console.error('❌ Error storing wallet in database:', error);
+          devError('❌ Error storing wallet in database:', error);
         } else {
-          console.log('✅ Wallet stored in database successfully');
-          console.log('Updated profile data:', data);
+          devLog('✅ Wallet stored in database successfully');
+          devLog('Updated profile data:', data);
           
           // Update local user state
           setUser(prevUser => {
@@ -325,7 +326,7 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
               wallet_address: walletAddress,
               wallet_type: walletType,
             } : null;
-            console.log('🔍 Updated local user state:', updatedUser);
+            devLog('🔍 Updated local user state:', updatedUser);
             return updatedUser;
           });
 
@@ -335,25 +336,25 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
           });
         }
       } catch (error) {
-        console.error('❌ Error in storeWalletInDatabase:', error);
+        devError('❌ Error in storeWalletInDatabase:', error);
       }
     };
 
     // Only store if we don't already have this wallet address stored
     if (user.wallet_address !== privyUser.wallet.address) {
-      console.log('🔍 Wallet address changed, storing in database:', {
+      devLog('🔍 Wallet address changed, storing in database:', {
         oldAddress: user.wallet_address,
         newAddress: privyUser.wallet.address
       });
       storeWalletInDatabase();
     } else {
-      console.log('🔍 Wallet address already stored, skipping database update');
+      devLog('🔍 Wallet address already stored, skipping database update');
     }
   }, [privyUser?.wallet?.address, user]);
 
   // Add a separate useEffect to log Privy user changes
   useEffect(() => {
-    console.log('🔍 Privy user changed:', {
+    devLog('🔍 Privy user changed:', {
       hasPrivyUser: !!privyUser,
       privyUserId: privyUser?.id,
       privyEmail: privyUser?.email?.address,
@@ -367,7 +368,7 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   // Add a separate useEffect to log user state changes
   useEffect(() => {
-    console.log('🔍 User state changed:', {
+    devLog('🔍 User state changed:', {
       hasUser: !!user,
       userId: user?.id,
       userEmail: user?.email,
@@ -381,24 +382,24 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
   // Function to fetch GitHub user data including email
   const fetchGitHubUserData = useCallback(async (githubUsername: string) => {
     try {
-      console.log('🔍 Fetching GitHub data for:', githubUsername);
+      devLog('🔍 Fetching GitHub data for:', githubUsername);
       
       // Fetch user data from GitHub API
       const response = await fetch(`https://api.github.com/users/${githubUsername}`);
-      console.log('🔍 GitHub API response status:', response.status);
+      devLog('🔍 GitHub API response status:', response.status);
       
       if (!response.ok) {
         throw new Error(`GitHub API error: ${response.status}`);
       }
       
       const userData = await response.json();
-      console.log('🔍 GitHub user data:', userData);
+      devLog('🔍 GitHub user data:', userData);
       
       // Check if email is available
       if (userData.email) {
-        console.log('🔍 Email found in GitHub data:', userData.email);
+        devLog('🔍 Email found in GitHub data:', userData.email);
       } else {
-        console.log('🔍 No email in GitHub data - user might have private email');
+        devLog('🔍 No email in GitHub data - user might have private email');
       }
       
       return {
@@ -408,7 +409,7 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         github_username: userData.login,
       };
     } catch (error) {
-      console.error('❌ Error fetching GitHub data:', error);
+      devError('❌ Error fetching GitHub data:', error);
       return null;
     }
   }, []);
@@ -416,19 +417,19 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
   // Function to fetch GitHub user data including email with authentication
   const fetchGitHubUserDataWithAuth = useCallback(async (githubAccount: any) => {
     try {
-      console.log('🔍 Fetching GitHub data with auth for account:', githubAccount);
-      console.log('🔍 GitHub account access token:', githubAccount.accessToken ? 'PRESENT' : 'MISSING');
+      devLog('🔍 Fetching GitHub data with auth for account:', githubAccount);
+      devLog('🔍 GitHub account access token:', githubAccount.accessToken ? 'PRESENT' : 'MISSING');
       
       // Check if we have access token
       if (!githubAccount.accessToken) {
-        console.log('🔍 No access token available, trying public API');
+        devLog('🔍 No access token available, trying public API');
         return await fetchGitHubUserData(githubAccount.username);
       }
 
       // Try to get emails using authenticated GitHub API
-      console.log('🔍 Fetching emails with GitHub access token...');
-      console.log('🔍 Making request to: https://api.github.com/user/emails');
-      console.log('🔍 Using token:', githubAccount.accessToken.substring(0, 10) + '...');
+      devLog('🔍 Fetching emails with GitHub access token...');
+      devLog('🔍 Making request to: https://api.github.com/user/emails');
+      devLog('🔍 Using token:', githubAccount.accessToken.substring(0, 10) + '...');
       
       const emailsResponse = await fetch('https://api.github.com/user/emails', {
         headers: { 
@@ -437,19 +438,19 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         }
       });
 
-      console.log('🔍 GitHub emails API response status:', emailsResponse.status);
-      console.log('🔍 GitHub emails API response headers:', Object.fromEntries(emailsResponse.headers.entries()));
+      devLog('🔍 GitHub emails API response status:', emailsResponse.status);
+      devLog('🔍 GitHub emails API response headers:', Object.fromEntries(emailsResponse.headers.entries()));
       
       if (emailsResponse.ok) {
         const emails = await emailsResponse.json();
-        console.log('🔍 GitHub emails response (full):', emails);
+        devLog('🔍 GitHub emails response (full):', emails);
         
         // Find the primary and verified email
         const primaryVerifiedEmail = emails.find((email: any) => email.primary && email.verified);
         const primaryEmail = emails.find((email: any) => email.primary);
         const verifiedEmail = emails.find((email: any) => email.verified);
         
-        console.log('🔍 Email analysis:', {
+        devLog('🔍 Email analysis:', {
           primaryVerifiedEmail: primaryVerifiedEmail?.email,
           primaryEmail: primaryEmail?.email,
           verifiedEmail: verifiedEmail?.email,
@@ -458,28 +459,28 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         });
         
         if (primaryVerifiedEmail) {
-          console.log('🔍 Found primary verified email:', primaryVerifiedEmail.email);
+          devLog('🔍 Found primary verified email:', primaryVerifiedEmail.email);
           return { email: primaryVerifiedEmail.email };
         } else if (primaryEmail) {
-          console.log('🔍 Found primary email (not verified):', primaryEmail.email);
+          devLog('🔍 Found primary email (not verified):', primaryEmail.email);
           return { email: primaryEmail.email };
         } else if (verifiedEmail) {
-          console.log('🔍 Found verified email (not primary):', verifiedEmail.email);
+          devLog('🔍 Found verified email (not primary):', verifiedEmail.email);
           return { email: verifiedEmail.email };
         } else if (emails.length > 0) {
-          console.log('🔍 Using first available email:', emails[0].email);
+          devLog('🔍 Using first available email:', emails[0].email);
           return { email: emails[0].email };
         }
       } else {
-        console.log('🔍 GitHub emails API error response:', await emailsResponse.text());
+        devLog('🔍 GitHub emails API error response:', await emailsResponse.text());
       }
 
       // Fallback to public API
-      console.log('🔍 Falling back to public GitHub API...');
+      devLog('🔍 Falling back to public GitHub API...');
       return await fetchGitHubUserData(githubAccount.username);
       
     } catch (error) {
-      console.error('❌ Error fetching GitHub data with auth:', error);
+      devError('❌ Error fetching GitHub data with auth:', error);
       // Fallback to public API
       return await fetchGitHubUserData(githubAccount.username);
     }
@@ -491,10 +492,13 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
     const processPrivyUser = async () => {
       try {
-        console.log('🔍 Processing Privy user with full data:', {
+        devLog('🔍 Processing Privy user with full data:', {
           id: privyUser.id,
           email: privyUser.email,
+          emailType: typeof privyUser.email,
+          emailKeys: privyUser.email ? Object.keys(privyUser.email) : 'no email',
           linkedAccounts: privyUser.linkedAccounts,
+          linkedAccountTypes: privyUser.linkedAccounts?.map((acc: any) => acc.type),
           wallet: privyUser.wallet,
           // Log the full privyUser object to see what's available
           fullPrivyUser: privyUser,
@@ -502,9 +506,9 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
         // Log each linked account in detail
         if (privyUser.linkedAccounts && privyUser.linkedAccounts.length > 0) {
-          console.log('🔍 Detailed linked accounts:');
+          devLog('🔍 Detailed linked accounts:');
           privyUser.linkedAccounts.forEach((account: any, index: number) => {
-            console.log(`  Account ${index}:`, {
+            devLog(`  Account ${index}:`, {
               type: account.type,
               username: account.username,
               accessToken: account.accessToken ? 'PRESENT' : 'MISSING',
@@ -521,14 +525,29 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         // Try to get email from Privy's email field first
         if (privyUser.email?.address) {
           userEmail = privyUser.email.address;
-          console.log('🔍 Found email in Privy user:', userEmail);
+          devLog('🔍 Found email in Privy user:', userEmail);
+        } else if (privyUser.email) {
+          // Sometimes email is a string directly
+          userEmail = privyUser.email;
+          devLog('🔍 Found email in Privy user (direct):', userEmail);
+        }
+
+        // Try to get email from Google account if available
+        const googleAccount = privyUser.linkedAccounts?.find((account: any) => account.type === 'google_oauth') as any;
+        if (!userEmail && googleAccount) {
+          devLog('🔍 Found Google account:', googleAccount);
+          // Google account might have email in the account data
+          if (googleAccount.email) {
+            userEmail = googleAccount.email;
+            devLog('🔍 Got email from Google account:', userEmail);
+          }
         }
 
         // Find GitHub account in linked accounts using the new approach
         const gh = privyUser.linkedAccounts?.find((account: any) => account.type === 'github_oauth') as any;
         const token = gh?.accessToken;
         
-        console.log('🔍 GitHub account detection:', {
+        devLog('🔍 GitHub account detection:', {
           found: !!gh,
           username: gh?.username,
           hasToken: !!token,
@@ -539,7 +558,7 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         
         if (gh) {
           githubUsername = gh.username;
-          console.log('🔍 Found GitHub account:', {
+          devLog('🔍 Found GitHub account:', {
             username: gh.username,
             type: gh.type,
             hasAccessToken: !!token,
@@ -548,14 +567,14 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
           // Try to get additional data from GitHub API with authentication
           try {
-            console.log('🔍 Fetching GitHub data with auth for username:', githubUsername);
+            devLog('🔍 Fetching GitHub data with auth for username:', githubUsername);
             const githubData = await fetchGitHubUserDataWithAuth(gh);
             if (githubData) {
-              console.log('🔍 GitHub API response:', githubData);
+              devLog('🔍 GitHub API response:', githubData);
               // Use GitHub data to fill in missing fields
               if (!userEmail && githubData.email) {
                 userEmail = githubData.email;
-                console.log('🔍 Got email from GitHub API:', userEmail);
+                devLog('🔍 Got email from GitHub API:', userEmail);
               }
               // Only try to access name and avatar_url if they exist (from public API fallback)
               if (!userName && 'name' in githubData && githubData.name) {
@@ -566,17 +585,17 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
               }
             }
           } catch (error) {
-            console.log('🔍 Could not fetch GitHub data, using fallback:', error);
+            devLog('🔍 Could not fetch GitHub data, using fallback:', error);
           }
         } else {
-          console.log('🔍 No GitHub account found in linked accounts');
+          devLog('🔍 No GitHub account found in linked accounts');
         }
 
         // Fallback values if we still don't have data
         if (!userEmail) {
-          console.log('❌ No email found in Privy user or GitHub data');
-          console.log('🔍 Privy user email field:', privyUser.email);
-          console.log('🔍 Privy user linked accounts:', privyUser.linkedAccounts);
+          devLog('❌ No email found in Privy user or GitHub data');
+          devLog('🔍 Privy user email field:', privyUser.email);
+          devLog('🔍 Privy user linked accounts:', privyUser.linkedAccounts);
           // For now, let's continue without email but log it
         }
 
@@ -600,7 +619,7 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
           auth_provider: 'privy',
         };
 
-        console.log('🔍 Created unified user:', unifiedUser);
+        devLog('🔍 Created unified user:', unifiedUser);
 
         // Update the user state
         setUser(unifiedUser);
@@ -610,14 +629,26 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         // Create/update profile in database
         const profileData = await createOrUpdateProfile(unifiedUser, 'privy');
         
-        // If the profile data has an email that we didn't have, update the user state
-        if (profileData?.email && !userEmail) {
-          console.log('🔍 Updating user state with email from database:', profileData.email);
-          setUser(prevUser => prevUser ? { ...prevUser, email: profileData.email } : null);
+        // Always update user state with the latest profile data (including email)
+        if (profileData) {
+          devLog('🔍 Updating user state with profile data:', profileData);
+          setUser(prevUser => {
+            if (!prevUser) return null;
+            const updatedUser = {
+              ...prevUser,
+              email: profileData.email || prevUser.email,
+              name: profileData.name || prevUser.name,
+              avatar_url: profileData.avatar_url || prevUser.avatar_url,
+              github_username: profileData.github_username || prevUser.github_username,
+              linkedin_profile: profileData.linkedin_profile || prevUser.linkedin_profile,
+            };
+            devLog('🔍 Updated user state:', updatedUser);
+            return updatedUser;
+          });
         }
 
       } catch (error) {
-        console.error('❌ Error processing Privy user:', error);
+        devError('❌ Error processing Privy user:', error);
       }
     };
 
@@ -626,7 +657,7 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   // Update the existing Privy user change handler
   useEffect(() => {
-    console.log('🔍 Privy user changed:', {
+    devLog('🔍 Privy user changed:', {
       hasPrivyUser: !!privyUser,
       privyUserId: privyUser?.id,
       privyEmail: privyUser?.email,
@@ -643,7 +674,7 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
           // Only process if we haven't already set up the user
       if (!user || user.id !== privyUser.id) {
-        console.log('🔍 Processing new Privy user...');
+        devLog('🔍 Processing new Privy user...');
         
         // If user has GitHub account, the other useEffect will handle it
         const hasGitHub = privyUser.linkedAccounts?.some((account: any) => account.type === 'github_oauth');
@@ -655,7 +686,7 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
             name: privyUser.email?.address?.split('@')[0] || 'User',
             avatar_url: null,
             github_username: null,
-                         linkedin_profile: (privyUser.linkedAccounts?.find((account: any) => account.type === 'linkedin_oauth') as any)?.username || null,
+            linkedin_profile: (privyUser.linkedAccounts?.find((account: any) => account.type === 'linkedin_oauth') as any)?.username || null,
             wallet_address: privyUser.wallet?.address || null,
             wallet_type: privyUser.wallet?.walletClientType || null,
             auth_provider: 'privy',
@@ -665,7 +696,28 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
           setIsPrivyUser(true);
           setIsSupabaseUser(false);
 
-          createOrUpdateProfile(fallbackUser, 'privy');
+          // Create profile and update user state with the result
+          const processProfile = async () => {
+            const profileData = await createOrUpdateProfile(fallbackUser, 'privy');
+            if (profileData) {
+              devLog('🔍 Updating fallback user state with profile data:', profileData);
+              setUser(prevUser => {
+                if (!prevUser) return null;
+                const updatedUser = {
+                  ...prevUser,
+                  email: profileData.email || prevUser.email,
+                  name: profileData.name || prevUser.name,
+                  avatar_url: profileData.avatar_url || prevUser.avatar_url,
+                  github_username: profileData.github_username || prevUser.github_username,
+                  linkedin_profile: profileData.linkedin_profile || prevUser.linkedin_profile,
+                };
+                devLog('🔍 Updated fallback user state:', updatedUser);
+                return updatedUser;
+              });
+            }
+          };
+          
+          processProfile();
         }
       }
   }, [privyUser, user, createOrUpdateProfile]);
@@ -712,7 +764,26 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
       });
 
       // Create or update profile in database
-      createOrUpdateProfile(unifiedUser, 'privy').catch(console.error);
+      const processProfile = async () => {
+        const profileData = await createOrUpdateProfile(unifiedUser, 'privy');
+        if (profileData) {
+          devLog('🔍 Updating unified user state with profile data:', profileData);
+          setUser(prevUser => {
+            if (!prevUser) return null;
+            const updatedUser = {
+              ...prevUser,
+              email: profileData.email || prevUser.email,
+              name: profileData.name || prevUser.name,
+              avatar_url: profileData.avatar_url || prevUser.avatar_url,
+              github_username: profileData.github_username || prevUser.github_username,
+              linkedin_profile: profileData.linkedin_profile || prevUser.linkedin_profile,
+            };
+            devLog('🔍 Updated unified user state:', updatedUser);
+            return updatedUser;
+          });
+        }
+      };
+      processProfile().catch(devError);
     } else if (!privyAuthenticated) {
       setIsPrivyUser(false);
       if (!isSupabaseUser) {
@@ -729,10 +800,10 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('🔍 Supabase auth state changed:', event, session?.user?.email);
+        devLog('🔍 Supabase auth state changed:', event, session?.user?.email);
         
         if (session?.user) {
-          console.log('🔍 Processing authenticated session...');
+          devLog('🔍 Processing authenticated session...');
           setIsSupabaseUser(true);
           setIsPrivyUser(false);
 
@@ -749,24 +820,24 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
             auth_provider: 'supabase',
           };
 
-          console.log('🔍 Setting unified user from session:', unifiedUser);
+          devLog('🔍 Setting unified user from session:', unifiedUser);
           setUser(unifiedUser);
           setSession(session);
           setLoading(false);
           setHasAuthenticated(true);
-          console.log('✅ Authentication successful, loading set to false');
+          devLog('✅ Authentication successful, loading set to false');
 
           // Handle redirect after successful authentication
           const intendedDestination = localStorage.getItem('intendedDestination');
           if (intendedDestination && intendedDestination !== window.location.pathname) {
-            console.log(`Redirecting to intended destination: ${intendedDestination}`);
+            devLog(`Redirecting to intended destination: ${intendedDestination}`);
             localStorage.removeItem('intendedDestination');
             setTimeout(() => {
               window.location.href = intendedDestination;
             }, 100);
           }
         } else {
-          console.log('🔍 No session, clearing user state');
+          devLog('🔍 No session, clearing user state');
           setIsSupabaseUser(false);
           setUser(null);
           setSession(null);
@@ -777,16 +848,16 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Supabase session check result:', { hasSession: !!session, isPrivyUser });
+      devLog('Supabase session check result:', { hasSession: !!session, isPrivyUser });
       if (session && !isPrivyUser) {
         setSession(session);
         setLoading(false);
       } else if (!isPrivyUser) {
-        console.log('No Supabase session and not Privy user, setting loading to false');
+        devLog('No Supabase session and not Privy user, setting loading to false');
         setLoading(false);
       }
     }).catch((error) => {
-      console.error('Error getting session:', error);
+      devError('Error getting session:', error);
       setLoading(false);
     });
 
@@ -797,7 +868,7 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (loading) {
-        console.log('Setting loading to false due to timeout');
+        devLog('Setting loading to false due to timeout');
         setLoading(false);
       }
     }, 3000); // 3 second timeout
@@ -808,7 +879,7 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
   // Additional fallback for Privy ready state
   useEffect(() => {
     if (privyReady && !privyAuthenticated && !isSupabaseUser) {
-      console.log('Privy ready but no user authenticated, setting loading to false');
+      devLog('Privy ready but no user authenticated, setting loading to false');
       setLoading(false);
     }
   }, [privyReady, privyAuthenticated, isSupabaseUser]);
@@ -816,7 +887,7 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
   // Fallback that doesn't depend on Privy ready state
   useEffect(() => {
     if (!privyReady && !isSupabaseUser && !session) {
-      console.log('Neither Privy nor Supabase user authenticated, setting loading to false');
+      devLog('Neither Privy nor Supabase user authenticated, setting loading to false');
       setLoading(false);
     }
   }, [privyReady, isSupabaseUser, session]);
@@ -825,7 +896,7 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
   useEffect(() => {
     const emergencyTimeout = setTimeout(() => {
       if (loading) {
-        console.warn('Emergency: Setting loading to false after 5 seconds');
+        devWarn('Emergency: Setting loading to false after 5 seconds');
         setLoading(false);
       }
     }, 5000);
@@ -836,7 +907,7 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
   // Force loading to false if user is authenticated but loading is still true
   useEffect(() => {
     if (loading && (user || session)) {
-      console.log('User is authenticated but loading is still true, forcing loading to false');
+      devLog('User is authenticated but loading is still true, forcing loading to false');
       setLoading(false);
     }
   }, [loading, user, session]);
@@ -844,21 +915,21 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
   // Prevent loading from being set to true if user has already authenticated
   useEffect(() => {
     if (hasAuthenticated && loading) {
-      console.log('User has already authenticated, preventing loading from being true');
+      devLog('User has already authenticated, preventing loading from being true');
       setLoading(false);
     }
   }, [hasAuthenticated, loading]);
 
   // Debug loading state changes
   useEffect(() => {
-    console.log('Loading state changed:', { loading, hasUser: !!user, hasSession: !!session });
+    devLog('Loading state changed:', { loading, hasUser: !!user, hasSession: !!session });
   }, [loading, user, session]);
 
   // Add timeout to force sign out if loading takes too long
   useEffect(() => {
     if (loading) {
       const timeoutId = setTimeout(async () => {
-        console.warn('⚠️ Loading timeout reached (1 seconds), forcing sign out');
+        devWarn('⚠️ Loading timeout reached (1 seconds), forcing sign out');
         try {
           await supabase.auth.signOut();
           setLoading(false);
@@ -866,15 +937,15 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
           setSession(null);
           setIsSupabaseUser(false);
           setIsPrivyUser(false);
-          console.log('✅ Forced sign out completed');
+          devLog('✅ Forced sign out completed');
         } catch (error) {
-          console.error('❌ Error during forced sign out:', error);
+          devError('❌ Error during forced sign out:', error);
           setLoading(false);
         }
       }, 1000); // 1 second timeout
 
       return () => {
-        console.log('🔍 Clearing loading timeout');
+        devLog('🔍 Clearing loading timeout');
         clearTimeout(timeoutId);
       };
     }
@@ -887,17 +958,24 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
       localStorage.setItem('intendedDestination', destination);
       setIntendedDestination(destination);
       
-      console.log(`Signing in with Privy${provider ? ` (${provider})` : ''}, intended destination: ${destination}`);
+      devLog(`Signing in with Privy${provider ? ` (${provider})` : ''}, intended destination: ${destination}`);
 
-      if (provider) {
-        // Use specific provider login
-        privyLogin();
-      } else {
-        // Use general login (will show modal with all options)
-        privyLogin();
+      // If user is already authenticated, show helpful message
+      if (privyAuthenticated) {
+        devLog('🔍 User already authenticated, showing account linking guidance');
+        toast({
+          title: "Account Linking Required",
+          description: "To add GitHub to your existing account, please sign out and sign back in with GitHub.",
+          variant: "destructive",
+        });
+        return;
       }
+
+      // Use Privy login for initial authentication
+      devLog('🔍 User not authenticated, using login function');
+      privyLogin();
     } catch (error) {
-      console.error(`Error with Privy auth:`, error);
+      devError(`Error with Privy auth:`, error);
       toast({
         title: "Authentication failed",
         description: `Failed to sign in. Please try again.`,
@@ -907,9 +985,9 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
   };
 
   const signOut = async () => {
-    console.log('🔍 signOut function called');
+    devLog('🔍 signOut function called');
     try {
-      console.log('🔍 Signing out user:', {
+      devLog('🔍 Signing out user:', {
         isPrivyUser,
         isSupabaseUser,
         hasUser: !!user,
@@ -919,23 +997,23 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
       });
 
       if (isPrivyUser) {
-        console.log('🔍 Signing out from Privy...');
+        devLog('🔍 Signing out from Privy...');
         await privyLogout();
-        console.log('✅ Privy logout successful');
+        devLog('✅ Privy logout successful');
       } else if (isSupabaseUser) {
-        console.log('🔍 Signing out from Supabase...');
+        devLog('🔍 Signing out from Supabase...');
         const { error } = await supabase.auth.signOut();
         if (error) {
-          console.error('❌ Error signing out from Supabase:', error);
+          devError('❌ Error signing out from Supabase:', error);
         } else {
-          console.log('✅ Supabase logout successful');
+          devLog('✅ Supabase logout successful');
         }
       } else {
-        console.log('⚠️ No specific auth provider detected, clearing state anyway');
+        devLog('⚠️ No specific auth provider detected, clearing state anyway');
       }
       
       // Clear all local state
-      console.log('🔍 Clearing local state...');
+      devLog('🔍 Clearing local state...');
       setUser(null);
       setSession(null);
       setIsPrivyUser(false);
@@ -945,7 +1023,7 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
       // Clear localStorage
       localStorage.removeItem('intendedDestination');
       
-      console.log('✅ Sign out completed successfully');
+      devLog('✅ Sign out completed successfully');
       
       // Show success toast
       toast({
@@ -953,7 +1031,7 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         description: "You have been successfully signed out.",
       });
     } catch (error) {
-      console.error('❌ Error during sign out:', error);
+      devError('❌ Error during sign out:', error);
       toast({
         title: "Sign out failed",
         description: "There was an error signing you out. Please try again.",
@@ -964,7 +1042,7 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   // Manual wallet setup function - simplified to work with Privy's automatic creation
   const setupWallet = useCallback(async () => {
-    console.log('🔍 setupWallet called with:', {
+    devLog('🔍 setupWallet called with:', {
       hasUser: !!user,
       userEmail: user?.email,
       privyReady,
@@ -973,29 +1051,29 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
     });
 
     if (!user) {
-      console.error('❌ No user available for wallet setup');
+      devError('❌ No user available for wallet setup');
       return false;
     }
 
     if (!privyReady) {
-      console.error('❌ Privy not ready for wallet setup');
+      devError('❌ Privy not ready for wallet setup');
       return false;
     }
 
-    console.log('🔍 Setting up wallet for user:', user.email);
+    devLog('🔍 Setting up wallet for user:', user.email);
     
     try {
       // First, try to connect an external wallet (this opens the Privy modal)
-      console.log('🔍 Attempting to connect external wallet...');
+      devLog('🔍 Attempting to connect external wallet...');
       await connectWallet();
-      console.log('🔍 connectWallet() completed');
+      devLog('🔍 connectWallet() completed');
       
       // Wait a bit for the user to interact with the modal
-      console.log('🔍 Waiting 3 seconds for user interaction...');
+      devLog('🔍 Waiting 3 seconds for user interaction...');
       await new Promise(resolve => setTimeout(resolve, 3000));
       
       // Check if user connected an external wallet
-      console.log('🔍 Checking wallet status after modal:', {
+      devLog('🔍 Checking wallet status after modal:', {
         hasPrivyUser: !!privyUser,
         hasWalletAddress: !!privyUser?.wallet?.address,
         walletAddress: privyUser?.wallet?.address,
@@ -1003,7 +1081,7 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
       });
 
       if (privyUser?.wallet?.address) {
-        console.log('✅ User connected external wallet:', privyUser.wallet.address);
+        devLog('✅ User connected external wallet:', privyUser.wallet.address);
         
         // The wallet will be automatically stored by the useEffect above
         toast({
@@ -1013,7 +1091,7 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         
         return true;
       } else {
-        console.log(' User didn\'t connect external wallet, Privy will create embedded wallet automatically');
+        devLog(' User didn\'t connect external wallet, Privy will create embedded wallet automatically');
         
         // Privy will automatically create an embedded wallet for users without wallets
         // We just need to wait for it to be created
@@ -1023,11 +1101,11 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         });
         
         // Wait a bit more for Privy to create the embedded wallet
-        console.log('🔍 Waiting 2 more seconds for embedded wallet creation...');
+        devLog('🔍 Waiting 2 more seconds for embedded wallet creation...');
         await new Promise(resolve => setTimeout(resolve, 2000));
         
         // Check again if wallet was created
-        console.log('🔍 Final wallet check:', {
+        devLog('🔍 Final wallet check:', {
           hasPrivyUser: !!privyUser,
           hasWalletAddress: !!privyUser?.wallet?.address,
           walletAddress: privyUser?.wallet?.address,
@@ -1035,15 +1113,15 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         });
 
         if (privyUser?.wallet?.address) {
-          console.log('✅ Embedded wallet created:', privyUser.wallet.address);
+          devLog('✅ Embedded wallet created:', privyUser.wallet.address);
           return true;
         }
         
-        console.log('⚠️ No wallet created yet, but Privy should handle it automatically');
+        devLog('⚠️ No wallet created yet, but Privy should handle it automatically');
         return true; // Return true since Privy will handle the wallet creation
       }
     } catch (error) {
-      console.error('❌ Error in wallet setup:', error);
+      devError('❌ Error in wallet setup:', error);
       return false;
     }
   }, [user, privyReady, privyUser, connectWallet]);
@@ -1097,7 +1175,7 @@ export const UnifiedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
       connectWallet();
       return true;
     } catch (error) {
-      console.error('Error connecting wallet:', error);
+      devError('Error connecting wallet:', error);
       return false;
     }
   };

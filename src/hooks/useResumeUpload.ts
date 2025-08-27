@@ -2,18 +2,19 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
 import { toast } from '@/hooks/use-toast';
+import { devLog } from '@/lib/utils';
 
 export const useResumeUpload = () => {
   const [uploading, setUploading] = useState(false);
   const { user } = useUnifiedAuth();
 
   const uploadResume = async (file: File) => {
-    console.log('🚀 Starting resume upload...');
-    console.log('👤 Current user:', user);
-    console.log('📁 File to upload:', file);
+    devLog('🚀 Starting resume upload...');
+    devLog('👤 Current user:', user);
+    devLog('📁 File to upload:', file);
 
     if (!user) {
-      console.log('❌ No user found, showing auth required toast');
+      devLog('❌ No user found, showing auth required toast');
       toast({
         title: "Authentication required",
         description: "Please sign in to upload your resume.",
@@ -22,9 +23,9 @@ export const useResumeUpload = () => {
       return false;
     }
 
-    console.log('✅ User authenticated, proceeding with upload');
-    console.log('🆔 User ID:', user.id);
-    console.log('📧 User email:', user.email);
+    devLog('✅ User authenticated, proceeding with upload');
+    devLog('🆔 User ID:', user.id);
+    devLog('📧 User email:', user.email);
 
     setUploading(true);
     
@@ -32,7 +33,7 @@ export const useResumeUpload = () => {
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
       
-      console.log('📤 Uploading file to storage:', fileName);
+      devLog('📤 Uploading file to storage:', fileName);
       
       // Upload file to storage
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -40,18 +41,18 @@ export const useResumeUpload = () => {
         .upload(fileName, file);
 
       if (uploadError) {
-        console.log('❌ Storage upload error:', uploadError);
+        devLog('❌ Storage upload error:', uploadError);
         throw uploadError;
       }
 
-      console.log('✅ File uploaded to storage successfully:', uploadData);
+      devLog('✅ File uploaded to storage successfully:', uploadData);
 
       // Get the public URL for the file
       const { data: urlData } = supabase.storage
         .from('resumes')
         .getPublicUrl(uploadData.path);
 
-      console.log('🔗 Public URL generated:', urlData.publicUrl);
+      devLog('🔗 Public URL generated:', urlData.publicUrl);
 
       // Save file info to database
       const resumeData = {
@@ -64,10 +65,10 @@ export const useResumeUpload = () => {
         public_url: urlData.publicUrl,
       };
 
-      console.log('💾 Saving resume data to database:', resumeData);
+      devLog('💾 Saving resume data to database:', resumeData);
 
       // First, let's check if the user profile exists
-      console.log('🔍 Checking if user profile exists...');
+      devLog('🔍 Checking if user profile exists...');
       const { data: profileCheck, error: profileError } = await supabase
         .from('profiles')
         .select('id, email, auth_provider')
@@ -75,9 +76,9 @@ export const useResumeUpload = () => {
         .single();
 
       if (profileError) {
-        console.log('❌ Profile check error:', profileError);
+        devLog('❌ Profile check error:', profileError);
       } else {
-        console.log('✅ Profile found:', profileCheck);
+        devLog('✅ Profile found:', profileCheck);
       }
 
       const { error: dbError } = await supabase
@@ -85,8 +86,8 @@ export const useResumeUpload = () => {
         .insert(resumeData);
 
       if (dbError) {
-        console.log('❌ Database insert error:', dbError);
-        console.log('🔍 Error details:', {
+        devLog('❌ Database insert error:', dbError);
+        devLog('🔍 Error details:', {
           code: dbError.code,
           message: dbError.message,
           details: dbError.details,
@@ -95,7 +96,7 @@ export const useResumeUpload = () => {
         throw dbError;
       }
 
-      console.log('✅ Resume saved to database successfully');
+      devLog('✅ Resume saved to database successfully');
 
       toast({
         title: "Resume uploaded successfully",
@@ -104,7 +105,7 @@ export const useResumeUpload = () => {
 
       return true;
     } catch (error) {
-      console.error('❌ Error uploading resume:', error);
+      devError('❌ Error uploading resume:', error);
       toast({
         title: "Upload failed",
         description: "There was an error uploading your resume. Please try again.",
@@ -124,7 +125,7 @@ export const useResumeUpload = () => {
       
       return data.publicUrl;
     } catch (error) {
-      console.error('Error getting resume URL:', error);
+      devError('Error getting resume URL:', error);
       return null;
     }
   };
@@ -145,7 +146,7 @@ export const useResumeUpload = () => {
       a.click();
       URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Error downloading resume:', error);
+      devError('Error downloading resume:', error);
       toast({
         title: "Download failed",
         description: "There was an error downloading the resume.",

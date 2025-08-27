@@ -40,7 +40,7 @@ check_production_link() {
     log_message "${YELLOW}🔗 Checking Supabase production link...${NC}"
     
     # Check if we can get production database URL from linked project
-    if ! supabase status --output json | jq -r '.linked_project.db_url' 2>/dev/null | grep -q "supabase.co"; then
+    if ! supabase projects list | grep -q "●"; then
         log_message "${RED}❌ Error: Not linked to production Supabase project${NC}"
         log_message "${YELLOW}💡 Run: supabase link --project-ref YOUR_PROJECT_REF${NC}"
         exit 1
@@ -53,10 +53,12 @@ check_production_link() {
 create_database_backup() {
     log_message "${YELLOW}🗄️ Creating database backup...${NC}"
     
-    # Get production database URL
-    DB_URL=$(supabase status --output json | jq -r '.linked_project.db_url')
-    
-    if [ -z "$DB_URL" ] || [ "$DB_URL" = "null" ]; then
+    # Get production database URL from environment or config
+    PROJECT_REF=$(supabase projects list --output json | jq -r '.[] | select(.linked == true) | .reference_id')
+    if [ -n "$PROJECT_REF" ] && [ "$PROJECT_REF" != "null" ]; then
+        DB_URL="postgresql://postgres.${PROJECT_REF}:[YOUR-PASSWORD]@aws-0-eu-central-1.pooler.supabase.com:6543/postgres"
+        log_message "${YELLOW}⚠️ Warning: Using constructed DB URL. You may need to set the password manually.${NC}"
+    else
         log_message "${RED}❌ Error: Could not get production database URL${NC}"
         exit 1
     fi

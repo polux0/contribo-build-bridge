@@ -1,4 +1,5 @@
 import posthog from 'posthog-js'
+import { devLog } from '@/lib/utils';
 
 // Detect environment from hostname
 const getEnvironment = (): string => {
@@ -40,23 +41,23 @@ if (typeof window !== 'undefined') {
     });
   } else {
     // Debug-only mode for testing without API key
-    console.log('🔍 PostHog: No API key provided, running in debug mode');
-    console.log('🔍 PostHog: Environment detected as:', env);
+    devLog('🔍 PostHog: No API key provided, running in debug mode');
+    devLog('🔍 PostHog: Environment detected as:', env);
     
     // Create a mock posthog object for testing
     const mockPosthog = {
       capture: (event: string, properties?: any) => {
-        console.log('🎯 [PostHog Debug] Event captured:', event, {
+        devLog('🎯 [PostHog Debug] Event captured:', event, {
           ...properties,
           env,
           timestamp: new Date().toISOString(),
         });
       },
       register: (properties: any) => {
-        console.log('📝 [PostHog Debug] Properties registered:', properties);
+        devLog('📝 [PostHog Debug] Properties registered:', properties);
       },
       debug: () => {
-        console.log('🐛 [PostHog Debug] Debug mode enabled');
+        devLog('🐛 [PostHog Debug] Debug mode enabled');
       },
     };
     

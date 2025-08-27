@@ -31,24 +31,24 @@ VALUES (
 -- ============================================================================
 
 -- Drop existing storage policies
-DROP POLICY IF EXISTS "Authenticated users can upload resumes" ON storage.objects;
-DROP POLICY IF EXISTS "Authenticated users can upload job descriptions" ON storage.objects;
-DROP POLICY IF EXISTS "Users can view own resumes" ON storage.objects;
-DROP POLICY IF EXISTS "Users can view own job descriptions" ON storage.objects;
+-- DROP POLICY IF EXISTS "Authenticated users can upload resumes" ON storage.objects;
+-- DROP POLICY IF EXISTS "Authenticated users can upload job descriptions" ON storage.objects;
+-- DROP POLICY IF EXISTS "Users can view own resumes" ON storage.objects;
+-- DROP POLICY IF EXISTS "Users can view own job descriptions" ON storage.objects;
 
--- Create storage policies for resumes bucket - allow anyone to upload
-CREATE POLICY "Anyone can upload resumes" ON storage.objects
-FOR INSERT WITH CHECK (bucket_id = 'resumes');
+-- -- Create storage policies for resumes bucket - allow anyone to upload
+-- CREATE POLICY "Anyone can upload resumes" ON storage.objects
+-- FOR INSERT WITH CHECK (bucket_id = 'resumes');
 
-CREATE POLICY "Anyone can view resumes" ON storage.objects
-FOR SELECT USING (bucket_id = 'resumes');
+-- CREATE POLICY "Anyone can view resumes" ON storage.objects
+-- FOR SELECT USING (bucket_id = 'resumes');
 
--- Create storage policies for job_descriptions bucket - allow anyone to upload
-CREATE POLICY "Anyone can upload job descriptions" ON storage.objects
-FOR INSERT WITH CHECK (bucket_id = 'job_descriptions');
+-- -- Create storage policies for job_descriptions bucket - allow anyone to upload
+-- CREATE POLICY "Anyone can upload job descriptions" ON storage.objects
+-- FOR INSERT WITH CHECK (bucket_id = 'job_descriptions');
 
-CREATE POLICY "Anyone can view job descriptions" ON storage.objects
-FOR SELECT USING (bucket_id = 'job_descriptions');
+-- CREATE POLICY "Anyone can view job descriptions" ON storage.objects
+-- FOR SELECT USING (bucket_id = 'job_descriptions');
 
 -- ============================================================================
 -- PROFILES TABLE (Supports both Supabase and Privy auth)

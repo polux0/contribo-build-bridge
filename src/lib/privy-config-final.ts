@@ -1,7 +1,8 @@
 import { PrivyClientConfig } from '@privy-io/react-auth';
+import { devLog } from '@/lib/utils';
 
-console.log('=== Final Privy Config ===');
-console.log('App ID:', import.meta.env.VITE_PRIVY_APP_ID);
+devLog('=== Final Privy Config ===');
+devLog('App ID:', import.meta.env.VITE_PRIVY_APP_ID);
 
 export const privyConfigFinal = {
   appId: import.meta.env.VITE_PRIVY_APP_ID || '',

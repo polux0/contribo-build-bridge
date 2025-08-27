@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { Upload, FileText, X } from 'lucide-react';
+import { devLog } from '@/lib/utils';
 
 interface UploadModalProps {
   isOpen: boolean;
@@ -13,7 +14,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose }) => {
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files) {
-      console.log('Selected files:', files);
+      devLog('Selected files:', files);
       // Handle file upload logic here
     }
   };
@@ -22,7 +23,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose }) => {
     event.preventDefault();
     setDragOver(false);
     const files = event.dataTransfer.files;
-    console.log('Dropped files:', files);
+    devLog('Dropped files:', files);
     // Handle dropped files here
   };
 

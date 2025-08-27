@@ -44,7 +44,7 @@ check_prerequisites() {
     fi
     
     # Check if linked to production
-    if ! supabase status --linked > /dev/null 2>&1; then
+    if ! supabase projects list | grep -q "●"; then
         log_message "${RED}❌ Error: Not linked to production Supabase project${NC}"
         log_message "${YELLOW}💡 Run: supabase link --project-ref YOUR_PROJECT_REF${NC}"
         exit 1

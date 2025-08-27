@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Share2, Sparkles, Twitter } from 'lucide-react';
 import Confetti from 'react-confetti';
 import { toast } from '@/hooks/use-toast';
+import { devLog } from '@/lib/utils';
 
 interface ApplicationSuccessModalProps {
   isOpen: boolean;
@@ -61,7 +62,7 @@ const ApplicationSuccessModal: React.FC<ApplicationSuccessModalProps> = ({
           url: shareUrl,
         });
       } catch (error) {
-        console.log('Share cancelled or failed');
+        devLog('Share cancelled or failed');
       }
     } else {
       // Fallback: copy to clipboard
