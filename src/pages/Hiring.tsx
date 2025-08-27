@@ -185,36 +185,32 @@ const Hiring = () => {
               </p>
             </div>
 
-            {/* User Info */}
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle>Your Profile</CardTitle>
-                <CardDescription>
-                  Information from your connected accounts
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div>
-                  <span className="text-sm font-medium text-gray-700">Email:</span>
-                  <p className="text-sm text-gray-600">
-                    {user.email ? (
-                      user.email
-                    ) : (
-                      <span className="text-orange-600 flex items-center gap-1">
-                        <Mail className="w-3 h-3" />
-                        Not provided - Please add below
-                      </span>
-                    )}
-                  </p>
-                </div>
-                {user.github_username && (
-                  <div>
-                    <span className="text-sm font-medium text-gray-700">GitHub:</span>
-                    <p className="text-sm text-gray-600">@{user.github_username}</p>
+            {/* Email Input Section */}
+            {showEmailInput && !user.email && (
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-gray-900">
+                    <Mail className="w-5 h-5 text-orange-600" />
+                    Email Required
+                  </CardTitle>
+                  <CardDescription>
+                    We couldn't automatically retrieve your email. Please provide it so we can contact you about potential matches.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email Address</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="your.email@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
 
             {/* File Upload Section */}
             <Card className="mb-6">
@@ -244,33 +240,6 @@ const Hiring = () => {
                 )}
               </CardContent>
             </Card>
-
-            {/* Email Input Section */}
-            {showEmailInput && !user.email && (
-              <Card className="mb-6">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-gray-900">
-                    <Mail className="w-5 h-5 text-orange-600" />
-                    Email Required
-                  </CardTitle>
-                  <CardDescription>
-                    We couldn't automatically retrieve your email. Please provide it so we can contact you about potential matches.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email Address</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="your.email@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            )}
 
             {/* Upload Button */}
             <div className="flex justify-center">
