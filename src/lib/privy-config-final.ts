@@ -14,11 +14,6 @@ export const privyConfigFinal = {
     },
     appearance: { 
       showWalletLoginFirst: false
-    },
-    externalWallets: { 
-      walletConnect: { 
-        projectId: import.meta.env.VITE_WC_PROJECT_ID 
-      } 
     }
   },
 }; 
