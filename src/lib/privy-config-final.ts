@@ -13,7 +13,7 @@ export const privyConfigFinal = {
       } 
     },
     appearance: { 
-      walletList: ['metamask', 'coinbase_wallet', 'walletconnect', 'rainbow'] 
+      showWalletLoginFirst: false
     },
     externalWallets: { 
       walletConnect: { 
