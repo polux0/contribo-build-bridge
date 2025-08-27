@@ -21,7 +21,7 @@ const Header = () => {
   };
 
   const handleBack = () => {
-    navigate(-1);
+    navigate('/');
   };
 
   // Don't show back button on the home page
@@ -49,8 +49,8 @@ const Header = () => {
         {user && (
           <Button
             onClick={handleSignOut}
-            variant="ghost"
-            className="text-black hover:text-black"
+            variant="outline"
+            className="border-black text-black hover:bg-black hover:text-white transition-colors"
           >
             Sign out
           </Button>
