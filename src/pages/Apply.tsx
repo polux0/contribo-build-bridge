@@ -21,6 +21,7 @@ const Apply: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [email, setEmail] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   
@@ -58,6 +59,49 @@ const Apply: React.FC = () => {
     }
   }, [loading, user, hasGithub]);
 
+  // Clear email state when user has email from profile (to avoid showing cached input)
+  useEffect(() => {
+    if (user?.email && email) {
+      setEmail('');
+      setEmailError('');
+    }
+  }, [user?.email]);
+
+  // Simple email validation function
+  const validateEmail = (email: string) => {
+    if (!email.trim()) {
+      return 'Email is required';
+    }
+    
+    // Basic email regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (!emailRegex.test(email)) {
+      return 'Please enter a valid email address';
+    }
+    
+    return '';
+  };
+
+  // Handle email input change with validation
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEmail = e.target.value;
+    setEmail(newEmail);
+    
+    // Clear error when user starts typing
+    if (emailError) {
+      setEmailError('');
+    }
+    
+    // Only validate if email looks complete (has @ and .)
+    if (newEmail.includes('@') && newEmail.includes('.')) {
+      const validationError = validateEmail(newEmail);
+      if (validationError) {
+        setEmailError(validationError);
+      }
+    }
+  };
+
   // Handle continue to application button click
   const handleContinueToApplication = async () => {
     // Check if user has provided an email
@@ -69,12 +113,17 @@ const Apply: React.FC = () => {
       hasEmail
     });
     
+    // Validate email if user entered one
+    if (email.trim() && !user?.email) {
+      const validationError = validateEmail(email);
+      if (validationError) {
+        setEmailError(validationError);
+        return;
+      }
+    }
+    
     if (!hasEmail) {
-      toast({
-        title: "Email required",
-        description: "Please provide your email address to continue.",
-        variant: "destructive",
-      });
+      setEmailError('Email is required');
       return;
     }
 
@@ -185,7 +234,7 @@ const Apply: React.FC = () => {
       <div className="min-h-screen bg-gray-50">
         <Header />
         <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="flex items-center justify-center min-h-[70vh]">
             <div className="text-center space-y-4">
               <div className="flex justify-center">
                 <Loader2 className="w-8 h-8 animate-spin text-contribo-black" />
@@ -236,16 +285,16 @@ const Apply: React.FC = () => {
     );
   }
 
-  // Render email required state
-  const hasEmail = user?.email || email.trim();
+  // Render email required state - only show if user has no email from profile
+  const hasEmailFromProfile = !!user?.email;
   devLog('🔍 Render condition check:', {
     userEmail: user?.email,
     inputEmail: email.trim(),
-    hasEmail,
-    willShowEmailRequired: !hasEmail
+    hasEmailFromProfile,
+    willShowEmailRequired: !hasEmailFromProfile
   });
   
-  if (!hasEmail) {
+  if (!hasEmailFromProfile) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
@@ -319,8 +368,12 @@ const Apply: React.FC = () => {
                       type="email"
                       placeholder="your.email@example.com"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={handleEmailChange}
+                      className={emailError ? "border-red-500 focus:border-red-500" : ""}
                     />
+                    {emailError && (
+                      <p className="text-sm text-red-600">{emailError}</p>
+                    )}
                   </div>
                 </div>
               </CardFooter>
@@ -337,7 +390,7 @@ const Apply: React.FC = () => {
                   <Button 
                     onClick={handleContinueToApplication}
                     className="bg-contribo-black hover:bg-gray-800 flex-1"
-                    disabled={!email.trim()}
+                    disabled={!email.trim() || !!emailError}
                   >
                     Continue
                   </Button>
@@ -458,6 +511,9 @@ const Apply: React.FC = () => {
       <Header />
       <div className="container mx-auto px-4 py-8">
         <div className="space-y-6 max-w-4xl mx-auto">
+          {/* Add some spacing to push the card lower, like other steps */}
+          <div className="h-32"></div>
+          
           <Card className="w-full max-w-2xl mx-auto hover:shadow-lg transition-shadow duration-200">
             <CardHeader className="pt-6">
               <div className="flex items-start justify-between">
@@ -479,7 +535,7 @@ const Apply: React.FC = () => {
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-gray-700">Email:</span>
-                  <span className="text-sm text-gray-600">{user?.email}</span>
+                  <span className="text-sm text-gray-600">{user?.email || email}</span>
                 </div>
                 
                 <div className="flex items-center gap-2">
