@@ -7,11 +7,11 @@ import { useOpportunities } from '@/hooks/useOpportunities';
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CheckCircle, AlertCircle, Wallet, Github, Loader2, Mail } from 'lucide-react';
+import { CheckCircle, AlertCircle, Wallet, Github, Loader2, Mail, ExternalLink } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import ApplicationSuccessModal from '@/components/ApplicationSuccessModal';
 import { trackPH } from '@/lib/posthog-script';
@@ -21,7 +21,6 @@ const Apply: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [email, setEmail] = useState('');
-  const [showEmailInput, setShowEmailInput] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   
@@ -29,6 +28,7 @@ const Apply: React.FC = () => {
   const opportunityId = searchParams.get('id');
   const opportunityTitle = searchParams.get('title');
   
+  // Always call hooks in the same order
   const { 
     user, 
     loading, 
@@ -40,23 +40,12 @@ const Apply: React.FC = () => {
     setupWalletForApplication
   } = useApplicationFlow();
 
-  const { signInWithPrivy, signOut } = useUnifiedAuth();
-
+  const { signInWithPrivy, signOut, updateUserEmail } = useUnifiedAuth();
   const { opportunities } = useOpportunities();
-  const { updateUserEmail } = useUnifiedAuth();
   const { submitApplication } = useApplicationSubmission();
 
   // Get full opportunity data
   const opportunity = opportunities.find(opp => opp.id === opportunityId);
-
-  // Check if user needs to provide email
-  useEffect(() => {
-    if (user && !user.email && !showEmailInput) {
-      setShowEmailInput(true);
-    } else if (user && user.email && showEmailInput) {
-      setShowEmailInput(false);
-    }
-  }, [user, showEmailInput]);
 
   useEffect(() => {
     // Show helpful message if user can't apply due to missing GitHub
@@ -71,33 +60,19 @@ const Apply: React.FC = () => {
 
   // Handle continue to application button click
   const handleContinueToApplication = async () => {
-    // Check if user needs to provide email first
-    if (!user?.email && !email.trim()) {
+    // Check if user has provided an email
+    const hasEmail = user?.email || email.trim();
+    
+    devLog('🔍 Email validation check:', {
+      userEmail: user?.email,
+      inputEmail: email.trim(),
+      hasEmail
+    });
+    
+    if (!hasEmail) {
       toast({
         title: "Email required",
         description: "Please provide your email address to continue.",
-        variant: "destructive",
-      });
-      setShowEmailInput(true);
-      return;
-    }
-
-    // If user has no email and hasn't entered one, force them to provide it
-    if (!user?.email && !email.trim()) {
-      toast({
-        title: "Email required",
-        description: "You must provide an email address to submit your application.",
-        variant: "destructive",
-      });
-      setShowEmailInput(true);
-      return;
-    }
-
-    // If email input is showing but no email is entered, prevent submission
-    if (showEmailInput && !email.trim()) {
-      toast({
-        title: "Email required",
-        description: "Please enter your email address before submitting.",
         variant: "destructive",
       });
       return;
@@ -135,6 +110,8 @@ const Apply: React.FC = () => {
     setIsSubmitting(true);
     
     try {
+      let finalEmail = user?.email || email.trim();
+      
       // If user has entered an email but it's not saved to their profile, save it first
       if (email.trim() && !user?.email) {
         devLog('🔍 Saving email to user profile...');
@@ -148,11 +125,14 @@ const Apply: React.FC = () => {
           setIsSubmitting(false);
           return;
         }
+        
+        // Use the email we just saved
+        finalEmail = email.trim();
       }
 
       // Prepare application payload
       const payload = {
-        user_email: user?.email || email.trim(), // Use entered email if user email is not available
+        user_email: finalEmail,
         github_username: user?.github_username,
         wallet_address: user?.wallet_address,
         wallet_type: user?.wallet_type,
@@ -173,7 +153,7 @@ const Apply: React.FC = () => {
         trackPH('ApplySubmitted', {
           opportunity_id: opportunityId,
           opportunity_title: opportunityTitle,
-          user_email: user?.email || email.trim(),
+          user_email: finalEmail,
           github_username: user?.github_username,
           wallet_address: user?.wallet_address,
         });
@@ -199,6 +179,7 @@ const Apply: React.FC = () => {
     navigate('/opportunities');
   };
 
+  // Render loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -216,6 +197,7 @@ const Apply: React.FC = () => {
     );
   }
 
+  // Render authentication required state
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -245,65 +227,82 @@ const Apply: React.FC = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              {opportunityTitle ? `Application for: ${opportunityTitle}` : 'Application Requirements'}
-            </h1>
-            <p className="text-gray-600">
-              Review your application requirements and proceed to apply for opportunities.
-            </p>
-          </div>
-
-          {/* User Info */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Your Profile</CardTitle>
-              <CardDescription>
-                Information from your connected accounts
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <span className="text-sm font-medium text-gray-700">Email:</span>
-                <p className="text-sm text-gray-600">
-                  {user.email ? (
-                    user.email
-                  ) : (
-                    <span className="text-orange-600 flex items-center gap-1">
-                      <Mail className="w-3 h-3" />
-                      Not provided - Please add below
-                    </span>
-                  )}
-                </p>
-              </div>
-              {user.github_username && (
-                <div>
-                  <span className="text-sm font-medium text-gray-700">GitHub:</span>
-                  <p className="text-sm text-gray-600">@{user.github_username}</p>
+  // Render email required state
+  const hasEmail = user?.email || email.trim();
+  devLog('🔍 Render condition check:', {
+    userEmail: user?.email,
+    inputEmail: email.trim(),
+    hasEmail,
+    willShowEmailRequired: !hasEmail
+  });
+  
+  if (!hasEmail) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <div className="space-y-6 max-w-4xl mx-auto">
+            {/* Add some spacing to push the card lower */}
+            <div className="h-20"></div>
+            
+            <Card className="w-full max-w-2xl mx-auto hover:shadow-lg transition-shadow duration-200">
+              <CardHeader className="pt-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <CardTitle className="text-xl font-semibold text-gray-900 mb-2">
+                      Email Required
+                    </CardTitle>
+                    <CardDescription className="text-gray-600 mb-3">
+                      We couldn't automatically retrieve your email from GitHub. Please provide it to continue with your application.
+                    </CardDescription>
+                  </div>
+                  <Badge variant="secondary" className="ml-4">
+                    Required
+                  </Badge>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+                
+                <div className="flex items-center gap-4 text-sm text-gray-500">
+                  <div className="flex items-center gap-1">
+                    <Mail className="w-4 h-4" />
+                    <span>Contact Information</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Secure & Private</span>
+                  </div>
+                </div>
+              </CardHeader>
 
-          {/* Email Input Section */}
-          {showEmailInput && !user.email && (
-            <div className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-gray-900">
-                    <Mail className="w-5 h-5 text-orange-600" />
-                    Email Required
-                  </CardTitle>
-                  <CardDescription>
-                    We couldn't automatically retrieve your email from GitHub. Please provide it to continue with your application. That's the way for us to contact you about application status.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-700">Purpose:</span>
+                    <span className="text-sm text-gray-600">Application status updates and communication</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-700">Privacy:</span>
+                    <span className="text-sm text-gray-600">Your email will only be used for application-related communications</span>
+                  </div>
+
+                  <div className="p-4 bg-orange-50 border border-orange-200 rounded-md">
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="w-5 h-5 text-orange-600 mt-0.5" />
+                      <div>
+                        <p className="text-sm text-orange-800 font-medium">
+                          Email required to continue
+                        </p>
+                        <p className="text-sm text-orange-700 mt-1">
+                          This is the primary way we'll contact you about your application status.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+
+              <CardFooter className="flex gap-3">
+                <div className="flex-1 space-y-3">
                   <div className="space-y-2">
                     <Label htmlFor="email">Email Address</Label>
                     <Input
@@ -314,25 +313,82 @@ const Apply: React.FC = () => {
                       onChange={(e) => setEmail(e.target.value)}
                     />
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+                </div>
+              </CardFooter>
 
-          {/* GitHub Connection Section */}
-          {!hasGithub && (
-            <div className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-gray-900">
-                    <Github className="w-5 h-5 text-orange-600" />
-                    GitHub Account Required
-                  </CardTitle>
-                  <CardDescription>
-                    You need to connect your GitHub account to apply for opportunities. This helps us verify your skills and experience.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
+              <div className="px-6 pb-6">
+                <div className="flex gap-3">
+                  <Button 
+                    onClick={() => navigate('/opportunities')}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    Back to Opportunities
+                  </Button>
+                  <Button 
+                    onClick={handleContinueToApplication}
+                    className="bg-contribo-black hover:bg-gray-800 flex-1"
+                    disabled={!email.trim()}
+                  >
+                    Continue
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Render GitHub required state
+  if (!hasGithub) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <div className="space-y-6 max-w-4xl mx-auto">
+            <Card className="w-full max-w-2xl mx-auto hover:shadow-lg transition-shadow duration-200">
+              <CardHeader className="pt-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <CardTitle className="text-xl font-semibold text-gray-900 mb-2">
+                      GitHub Account Required
+                    </CardTitle>
+                    <CardDescription className="text-gray-600 mb-3">
+                      You need to connect your GitHub account to apply for opportunities. This helps us verify your skills and experience.
+                    </CardDescription>
+                  </div>
+                  <Badge variant="secondary" className="ml-4">
+                    Required
+                  </Badge>
+                </div>
+                
+                <div className="flex items-center gap-4 text-sm text-gray-500">
+                  <div className="flex items-center gap-1">
+                    <Github className="w-4 h-4" />
+                    <span>Developer Profile</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Skills Verification</span>
+                  </div>
+                </div>
+              </CardHeader>
+
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-700">Purpose:</span>
+                    <span className="text-sm text-gray-600">Verify your coding experience and skills</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-700">Access:</span>
+                    <span className="text-sm text-gray-600">Public repositories and profile information only</span>
+                  </div>
+
                   <div className="p-4 bg-orange-50 border border-orange-200 rounded-md">
                     <div className="flex items-start gap-3">
                       <AlertCircle className="w-5 h-5 text-orange-600 mt-0.5" />
@@ -346,61 +402,113 @@ const Apply: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="space-y-3">
-                    <Button 
-                      onClick={async () => {
-                        try {
-                          await signInWithPrivy('github');
-                        } catch (error) {
-                          devError('GitHub connection error:', error);
-                          toast({
-                            title: "GitHub connection failed",
-                            description: "Please try again or contact support.",
-                            variant: "destructive",
-                          });
-                        }
-                      }}
-                      className="w-full bg-contribo-black hover:bg-gray-800"
-                    >
-                      <Github className="w-4 h-4 mr-2" />
-                      Connect GitHub Account
-                    </Button>
-                    
-                                         <div className="text-xs text-gray-600 text-center">
-                       <p>Click the button above to connect your GitHub account securely.</p>
-                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+                </div>
+              </CardContent>
 
-          {/* Action Buttons */}
-          <div className="mt-8 flex gap-4 justify-center">
-            <Button 
-              onClick={() => navigate('/opportunities')}
-              variant="outline"
-            >
-              Back to Opportunities
-            </Button>
-            
-            <Button 
-              onClick={handleContinueToApplication}
-              className="bg-contribo-black hover:bg-gray-800"
-              disabled={!canApply || isSubmitting || (!user?.email && !email.trim())}
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Submitting...
-                </>
-              ) : !user?.email && !email.trim() ? (
-                "Email Required"
-              ) : (
-                "Submit Application"
-              )}
-            </Button>
+              <CardFooter className="flex gap-3">
+                <Button 
+                  onClick={async () => {
+                    try {
+                      await signInWithPrivy('github');
+                    } catch (error) {
+                      devError('GitHub connection error:', error);
+                      toast({
+                        title: "GitHub connection failed",
+                        description: "Please try again or contact support.",
+                        variant: "destructive",
+                      });
+                    }
+                  }}
+                  className="w-full bg-contribo-black hover:bg-gray-800"
+                >
+                  <Github className="w-4 h-4 mr-2" />
+                  Connect GitHub Account
+                </Button>
+              </CardFooter>
+
+              <div className="px-6 pb-6">
+                <Button 
+                  onClick={() => navigate('/opportunities')}
+                  variant="outline"
+                  className="w-full"
+                >
+                  Back to Opportunities
+                </Button>
+              </div>
+            </Card>
           </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Render application submission form
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <div className="container mx-auto px-4 py-8">
+        <div className="space-y-6 max-w-4xl mx-auto">
+          <Card className="w-full max-w-2xl mx-auto hover:shadow-lg transition-shadow duration-200">
+            <CardHeader className="pt-6">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <CardTitle className="text-xl font-semibold text-gray-900 mb-2">
+                    Submit Application
+                  </CardTitle>
+                  <CardDescription className="text-gray-600 mb-3">
+                    Review your information and submit your application for this opportunity.
+                  </CardDescription>
+                </div>
+                <Badge variant="default" className="ml-4">
+                  Ready
+                </Badge>
+              </div>
+            </CardHeader>
+
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-700">Email:</span>
+                  <span className="text-sm text-gray-600">{user?.email}</span>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-700">GitHub:</span>
+                  <span className="text-sm text-gray-600">@{user?.github_username}</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-700">Opportunity:</span>
+                  <span className="text-sm text-gray-600">{opportunity?.title}</span>
+                </div>
+              </div>
+            </CardContent>
+
+            <CardFooter className="flex gap-3">
+              <Button 
+                onClick={() => navigate('/opportunities')}
+                variant="outline"
+                className="flex-1"
+              >
+                Back to Opportunities
+              </Button>
+              <Button 
+                onClick={handleContinueToApplication}
+                className="bg-contribo-black hover:bg-gray-800 flex-1"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  "Submit Application"
+                )}
+              </Button>
+            </CardFooter>
+          </Card>
         </div>
       </div>
       <Footer />

@@ -136,3 +136,5 @@ Set these in your Vercel project:
 ## 📄 License
 
 This project is licensed under the ISC License.
+
+![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/polux0/contribo-build-bridge?utm_source=oss&utm_medium=github&utm_campaign=polux0%2Fcontribo-build-bridge&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)

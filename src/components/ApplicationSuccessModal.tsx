@@ -112,28 +112,28 @@ const ApplicationSuccessModal: React.FC<ApplicationSuccessModalProps> = ({
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-              <CheckCircle className="h-8 w-8 text-gray-900" />
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
+              <CheckCircle className="h-10 w-10 text-green-600" />
             </div>
             <DialogTitle className="text-2xl font-bold text-gray-900 text-center">
               Application Submitted!
             </DialogTitle>
           </DialogHeader>
 
-          <div className="text-center space-y-4" style={{ marginTop: '1.8rem' }}>
-            <div className="space-y-2">
-              <p className="text-gray-600">
+          <div className="text-center space-y-6">
+            <div className="space-y-4">
+              <p className="text-gray-600 text-sm">
                 We'll notify you about the status of your application shortly.
               </p>
               
               {opportunityTitle && companyName && (
-                <div className="bg-gray-50 rounded-lg p-4 space-y-3" style={{ marginTop: '1.8rem', marginBottom: '1.8rem' }}>
+                <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                   <Badge variant="outline" className="text-xs">
                     <Sparkles className="w-3 h-3 mr-1" />
                     Applied Successfully
                   </Badge>
-                  <div className="pt-1">
-                    <p className="text-sm font-medium text-gray-900" style={{ marginTop: '1.8rem' }}>
+                  <div className="pt-2">
+                    <p className="text-sm font-medium text-gray-900">
                       {opportunityTitle}
                     </p>
                     <p className="text-xs text-gray-500">
@@ -144,7 +144,7 @@ const ApplicationSuccessModal: React.FC<ApplicationSuccessModalProps> = ({
               )}
             </div>
 
-            <div className="flex flex-col gap-3 pt-4">
+            <div className="flex flex-col gap-3">
               <Button
                 onClick={handleShare}
                 className="w-full bg-contribo-black hover:bg-gray-800"
@@ -177,7 +177,7 @@ const ApplicationSuccessModal: React.FC<ApplicationSuccessModalProps> = ({
               </div>
             </div>
 
-            <div className="pt-4">
+            <div className="pt-2">
               <Button
                 onClick={onClose}
                 variant="ghost"
