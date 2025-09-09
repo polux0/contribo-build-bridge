@@ -185,10 +185,19 @@ const Apply: React.FC = () => {
       <div className="min-h-screen bg-gray-50">
         <Header />
         <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="flex items-center gap-2">
-              <Loader2 className="w-6 h-6 animate-spin" />
-              <span>Loading application requirements...</span>
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="text-center space-y-4">
+              <div className="flex justify-center">
+                <Loader2 className="w-8 h-8 animate-spin text-contribo-black" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Loading Application Requirements
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Please wait while we verify your account details...
+                </p>
+              </div>
             </div>
           </div>
         </div>
