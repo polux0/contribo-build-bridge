@@ -21,6 +21,7 @@ const Apply: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [email, setEmail] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   
@@ -58,6 +59,42 @@ const Apply: React.FC = () => {
     }
   }, [loading, user, hasGithub]);
 
+  // Clear email state when user has email from profile (to avoid showing cached input)
+  useEffect(() => {
+    if (user?.email && email) {
+      setEmail('');
+      setEmailError('');
+    }
+  }, [user?.email]);
+
+
+  // Simple email validation function
+  const validateEmail = (email: string) => {
+    if (!email.trim()) {
+      return 'Email is required';
+    }
+    
+    // Basic email regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (!emailRegex.test(email)) {
+      return 'Please enter a valid email address';
+    }
+    
+    return '';
+  };
+
+  // Handle email input change (no real-time validation)
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEmail = e.target.value;
+    setEmail(newEmail);
+    
+    // Clear error when user starts typing
+    if (emailError) {
+      setEmailError('');
+    }
+  };
+
   // Handle continue to application button click
   const handleContinueToApplication = async () => {
     // Check if user has provided an email
@@ -69,12 +106,17 @@ const Apply: React.FC = () => {
       hasEmail
     });
     
+    // Validate email if user entered one
+    if (email.trim() && !user?.email) {
+      const validationError = validateEmail(email);
+      if (validationError) {
+        setEmailError(validationError);
+        return;
+      }
+    }
+    
     if (!hasEmail) {
-      toast({
-        title: "Email required",
-        description: "Please provide your email address to continue.",
-        variant: "destructive",
-      });
+      setEmailError('Email is required');
       return;
     }
 
@@ -179,16 +221,33 @@ const Apply: React.FC = () => {
     navigate('/opportunities');
   };
 
+  // If user has email from profile, auto-submit application
+  useEffect(() => {
+    if (user?.email && !isSubmitting && !showSuccessModal) {
+      devLog('🔍 User has email from profile, auto-submitting application...');
+      handleContinueToApplication();
+    }
+  }, [user?.email, isSubmitting, showSuccessModal, handleContinueToApplication]);
+
   // Render loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
         <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="flex items-center gap-2">
-              <Loader2 className="w-6 h-6 animate-spin" />
-              <span>Loading application requirements...</span>
+          <div className="flex items-center justify-center min-h-[70vh]">
+            <div className="text-center space-y-4">
+              <div className="flex justify-center">
+                <Loader2 className="w-8 h-8 animate-spin text-contribo-black" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Loading Application Requirements
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Please wait while we verify your account details...
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -227,16 +286,16 @@ const Apply: React.FC = () => {
     );
   }
 
-  // Render email required state
-  const hasEmail = user?.email || email.trim();
+  // Render email required state - only show if user has no email from profile
+  const hasEmailFromProfile = !!user?.email;
   devLog('🔍 Render condition check:', {
     userEmail: user?.email,
     inputEmail: email.trim(),
-    hasEmail,
-    willShowEmailRequired: !hasEmail
+    hasEmailFromProfile,
+    willShowEmailRequired: !hasEmailFromProfile
   });
   
-  if (!hasEmail) {
+  if (!hasEmailFromProfile) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
@@ -310,8 +369,12 @@ const Apply: React.FC = () => {
                       type="email"
                       placeholder="your.email@example.com"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={handleEmailChange}
+                      className={emailError ? "border-red-500 focus:border-red-500" : ""}
                     />
+                    {emailError && (
+                      <p className="text-sm text-red-600">{emailError}</p>
+                    )}
                   </div>
                 </div>
               </CardFooter>
@@ -328,7 +391,7 @@ const Apply: React.FC = () => {
                   <Button 
                     onClick={handleContinueToApplication}
                     className="bg-contribo-black hover:bg-gray-800 flex-1"
-                    disabled={!email.trim()}
+                    disabled={!email.trim() || !!emailError}
                   >
                     Continue
                   </Button>
@@ -443,82 +506,40 @@ const Apply: React.FC = () => {
     );
   }
 
-  // Render application submission form
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      <div className="container mx-auto px-4 py-8">
-        <div className="space-y-6 max-w-4xl mx-auto">
-          <Card className="w-full max-w-2xl mx-auto hover:shadow-lg transition-shadow duration-200">
-            <CardHeader className="pt-6">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <CardTitle className="text-xl font-semibold text-gray-900 mb-2">
-                    Submit Application
-                  </CardTitle>
-                  <CardDescription className="text-gray-600 mb-3">
-                    Review your information and submit your application for this opportunity.
-                  </CardDescription>
-                </div>
-                <Badge variant="default" className="ml-4">
-                  Ready
-                </Badge>
-              </div>
-            </CardHeader>
-
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-700">Email:</span>
-                  <span className="text-sm text-gray-600">{user?.email}</span>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-700">GitHub:</span>
-                  <span className="text-sm text-gray-600">@{user?.github_username}</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-700">Opportunity:</span>
-                  <span className="text-sm text-gray-600">{opportunity?.title}</span>
-                </div>
-              </div>
-            </CardContent>
-
-            <CardFooter className="flex gap-3">
-              <Button 
-                onClick={() => navigate('/opportunities')}
-                variant="outline"
-                className="flex-1"
-              >
-                Back to Opportunities
-              </Button>
-              <Button 
-                onClick={handleContinueToApplication}
-                className="bg-contribo-black hover:bg-gray-800 flex-1"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Submitting...
-                  </>
-                ) : (
-                  "Submit Application"
-                )}
-              </Button>
-            </CardFooter>
-          </Card>
+  // Render loading state while auto-submitting
+  if (user?.email && isSubmitting) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center min-h-[70vh]">
+            <div className="text-center">
+              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-contribo-black" />
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                Submitting Application...
+              </h2>
+              <p className="text-gray-600">
+                Please wait while we submit your application.
+              </p>
+            </div>
+          </div>
         </div>
+        <Footer />
       </div>
-      <Footer />
+    );
+  }
+
+  // This should not render if user has email (auto-submit handles it)
+  return (
+    <>
+      {null}
       <ApplicationSuccessModal
         isOpen={showSuccessModal}
         onClose={handleCloseSuccessModal}
         opportunityTitle={opportunity?.title}
         companyName={opportunity?.company_name}
       />
-    </div>
+    </>
   );
 };
 
