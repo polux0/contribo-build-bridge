@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useApplicationFlow } from '@/hooks/useApplicationFlow';
 import { useUnifiedAuth } from '@/contexts/UnifiedAuthContext';
@@ -96,7 +96,7 @@ const Apply: React.FC = () => {
   };
 
   // Handle continue to application button click
-  const handleContinueToApplication = async () => {
+  const handleContinueToApplication = useCallback(async () => {
     // Check if user has provided an email
     const hasEmail = user?.email || email.trim();
     
@@ -213,7 +213,18 @@ const Apply: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [
+    user?.email,
+    email,
+    hasWallet,
+    opportunityId,
+    opportunityTitle,
+    setupWalletForApplication,
+    updateUserEmail,
+    submitApplication,
+    navigate,
+    trackPH
+  ]);
 
   const handleCloseSuccessModal = () => {
     setShowSuccessModal(false);
@@ -223,11 +234,17 @@ const Apply: React.FC = () => {
 
   // If user has email from profile, auto-submit application
   useEffect(() => {
-    if (user?.email && !isSubmitting && !showSuccessModal) {
-      devLog('🔍 User has email from profile, auto-submitting application...');
+    if (user?.email && hasGithub && canApply && !isSubmitting && !showSuccessModal) {
+      devLog('🔍 User has email from profile, auto-submitting application...', {
+        hasEmail: !!user?.email,
+        hasGithub,
+        canApply,
+        isSubmitting,
+        showSuccessModal
+      });
       handleContinueToApplication();
     }
-  }, [user?.email, isSubmitting, showSuccessModal, handleContinueToApplication]);
+  }, [user?.email, hasGithub, canApply, isSubmitting, showSuccessModal, handleContinueToApplication]);
 
   // Render loading state
   if (loading) {
