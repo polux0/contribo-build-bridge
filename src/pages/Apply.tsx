@@ -67,6 +67,7 @@ const Apply: React.FC = () => {
     }
   }, [user?.email]);
 
+
   // Simple email validation function
   const validateEmail = (email: string) => {
     if (!email.trim()) {
@@ -83,7 +84,7 @@ const Apply: React.FC = () => {
     return '';
   };
 
-  // Handle email input change with validation
+  // Handle email input change (no real-time validation)
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newEmail = e.target.value;
     setEmail(newEmail);
@@ -91,14 +92,6 @@ const Apply: React.FC = () => {
     // Clear error when user starts typing
     if (emailError) {
       setEmailError('');
-    }
-    
-    // Only validate if email looks complete (has @ and .)
-    if (newEmail.includes('@') && newEmail.includes('.')) {
-      const validationError = validateEmail(newEmail);
-      if (validationError) {
-        setEmailError(validationError);
-      }
     }
   };
 
@@ -227,6 +220,14 @@ const Apply: React.FC = () => {
     // Navigate back to opportunities after modal is closed
     navigate('/opportunities');
   };
+
+  // If user has email from profile, auto-submit application
+  useEffect(() => {
+    if (user?.email && !isSubmitting && !showSuccessModal) {
+      devLog('🔍 User has email from profile, auto-submitting application...');
+      handleContinueToApplication();
+    }
+  }, [user?.email, isSubmitting, showSuccessModal, handleContinueToApplication]);
 
   // Render loading state
   if (loading) {
@@ -505,85 +506,40 @@ const Apply: React.FC = () => {
     );
   }
 
-  // Render application submission form
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      <div className="container mx-auto px-4 py-8">
-        <div className="space-y-6 max-w-4xl mx-auto">
-          {/* Add some spacing to push the card lower, like other steps */}
-          <div className="h-32"></div>
-          
-          <Card className="w-full max-w-2xl mx-auto hover:shadow-lg transition-shadow duration-200">
-            <CardHeader className="pt-6">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <CardTitle className="text-xl font-semibold text-gray-900 mb-2">
-                    Submit Application
-                  </CardTitle>
-                  <CardDescription className="text-gray-600 mb-3">
-                    Review your information and submit your application for this opportunity.
-                  </CardDescription>
-                </div>
-                <Badge variant="default" className="ml-4">
-                  Ready
-                </Badge>
-              </div>
-            </CardHeader>
-
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-700">Email:</span>
-                  <span className="text-sm text-gray-600">{user?.email || email}</span>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-700">GitHub:</span>
-                  <span className="text-sm text-gray-600">@{user?.github_username}</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-700">Opportunity:</span>
-                  <span className="text-sm text-gray-600">{opportunity?.title}</span>
-                </div>
-              </div>
-            </CardContent>
-
-            <CardFooter className="flex gap-3">
-              <Button 
-                onClick={() => navigate('/opportunities')}
-                variant="outline"
-                className="flex-1"
-              >
-                Back to Opportunities
-              </Button>
-              <Button 
-                onClick={handleContinueToApplication}
-                className="bg-contribo-black hover:bg-gray-800 flex-1"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Submitting...
-                  </>
-                ) : (
-                  "Submit Application"
-                )}
-              </Button>
-            </CardFooter>
-          </Card>
+  // Render loading state while auto-submitting
+  if (user?.email && isSubmitting) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center min-h-[70vh]">
+            <div className="text-center">
+              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-contribo-black" />
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                Submitting Application...
+              </h2>
+              <p className="text-gray-600">
+                Please wait while we submit your application.
+              </p>
+            </div>
+          </div>
         </div>
+        <Footer />
       </div>
-      <Footer />
+    );
+  }
+
+  // This should not render if user has email (auto-submit handles it)
+  return (
+    <>
+      {null}
       <ApplicationSuccessModal
         isOpen={showSuccessModal}
         onClose={handleCloseSuccessModal}
         opportunityTitle={opportunity?.title}
         companyName={opportunity?.company_name}
       />
-    </div>
+    </>
   );
 };
 

@@ -24,8 +24,9 @@ const Header = () => {
     navigate('/');
   };
 
-  // Don't show back button on the home page
+  // Don't show back button or sign out button on the home page
   const showBackButton = location.pathname !== '/';
+  const showSignOutButton = location.pathname !== '/';
 
   return (
     <header className="bg-white">
@@ -46,7 +47,7 @@ const Header = () => {
           )}
         </div>
         
-        {user && (
+        {user && showSignOutButton && (
           <Button
             onClick={handleSignOut}
             variant="outline"
