@@ -13,6 +13,7 @@ import Index from "./pages/Index";
 import Opportunities from "./pages/Opportunities";
 import Hiring from "./pages/Hiring";
 import Apply from "./pages/Apply";
+import LiveGig from "./pages/LiveGig";
 import NotFound from "./pages/NotFound";
 import { Analytics } from './components/Analytics';
 
@@ -32,6 +33,7 @@ const App = () => (
                 <Route path="/opportunities" element={<Opportunities />} />
                 <Route path="/hiring" element={<Hiring />} />
                 <Route path="/apply" element={<Apply />} />
+                <Route path="/live-gig" element={<LiveGig />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </TooltipProvider>
