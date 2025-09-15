@@ -1,10 +1,9 @@
 import React, { useMemo, useState, useEffect } from "react";
 
 /**
- * Contribo - Live Gig Modules Component (with Profile)
+ * Contribo - Live Gig Modules Component
  *
  * - Presents a gig split into 4 modules with status, details and progress
- * - Adds a ProfileCard for the developer (name, current gig, progress)
  * - Badge appears ONLY when the gig is fully completed (100 percent)
  * - Self-tests run in dev via useEffect (no global setTimeout)
  * - ASCII-only strings and careful JSX to avoid parser issues
@@ -105,14 +104,6 @@ const gig = {
     { label: "Spec document", href: "#" },
     { label: "Issue tracker", href: "#" },
   ],
-  // New: profile data used by ProfileCard
-  profile: {
-    name: "Jane Dev",
-    avatar: "https://i.pravatar.cc/120?img=5",
-    title: "Fullstack engineer",
-    stars: 0,
-    badgeLabel: "Verified for Safe payouts",
-  },
 };
 
 // -------------------- Helpers --------------------
@@ -134,10 +125,10 @@ function statusLabel(s: string) {
 function statusClasses(s: string) {
   const base = "inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-xs font-medium";
   const map: Record<string, string> = {
-    not_started: `${base} bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300`,
-    in_progress: `${base} bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-200`,
-    blocked: `${base} bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200`,
-    done: `${base} bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200`,
+    not_started: `${base} bg-gray-100 text-gray-700`,
+    in_progress: `${base} bg-blue-100 text-blue-700`,
+    blocked: `${base} bg-amber-100 text-amber-700`,
+    done: `${base} bg-emerald-100 text-emerald-700`,
   };
   return map[s] || base;
 }
@@ -145,9 +136,9 @@ function statusClasses(s: string) {
 function ProgressBar({ value }: { value: number }) {
   const safeValue = Number.isFinite(value) ? Math.min(100, Math.max(0, value)) : 0;
   return (
-    <div className="w-full h-2 rounded-full bg-zinc-200 dark:bg-zinc-800 overflow-hidden" data-testid="progressbar">
+    <div className="w-full h-2 rounded-full bg-gray-200 overflow-hidden" data-testid="progressbar">
       <div
-        className="h-full bg-emerald-500 transition-[width] duration-500"
+        className="h-full bg-contribo-gold transition-[width] duration-500"
         style={{ width: `${safeValue}%` }}
       />
     </div>
@@ -180,37 +171,37 @@ function ModuleCard({ mod }: { mod: Module }) {
   const hasEstimate = typeof mod.estimate_hours === "number";
 
   return (
-    <div className="group rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/60 backdrop-blur p-4 hover:shadow-sm transition-shadow" data-testid={`module-${mod.id}`}>
+    <div className="group rounded-lg border border-gray-200 bg-white p-6 hover:shadow-md transition-shadow" data-testid={`module-${mod.id}`}>
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="text-sm text-zinc-500 dark:text-zinc-400">Module</div>
-          <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50 leading-tight">{mod.title}</h3>
+          <div className="text-sm text-gray-500">Module</div>
+          <h3 className="text-lg font-semibold text-gray-900 leading-tight">{mod.title}</h3>
         </div>
         <span className={statusClasses(mod.status)}>{statusLabel(mod.status)}</span>
       </div>
 
-      <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">{mod.short}</p>
+      <p className="mt-2 text-sm text-gray-600">{mod.short}</p>
 
-      <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400">
+      <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-gray-500">
         <span className="inline-flex items-center gap-1">
           Owner:
-          <strong className="ml-1 font-medium text-zinc-800 dark:text-zinc-200">{mod.owner}</strong>
+          <strong className="ml-1 font-medium text-gray-800">{mod.owner}</strong>
         </span>
         <span>
           Due:
-          <strong className="ml-1 font-medium text-zinc-800 dark:text-zinc-200">{mod.due}</strong>
+          <strong className="ml-1 font-medium text-gray-800">{mod.due}</strong>
         </span>
         {hasEstimate ? (
           <span>
             Est:
-            <strong className="ml-1 font-medium text-zinc-800 dark:text-zinc-200">{mod.estimate_hours}h</strong>
+            <strong className="ml-1 font-medium text-gray-800">{mod.estimate_hours}h</strong>
           </span>
         ) : null}
       </div>
 
       <button
         onClick={() => setOpen(!open)}
-        className="mt-4 text-sm font-medium text-zinc-900 dark:text-zinc-100 underline underline-offset-4 hover:opacity-80"
+        className="mt-4 text-sm font-medium text-contribo-black underline underline-offset-4 hover:opacity-80"
         aria-expanded={open}
         aria-controls={`details-${mod.id}`}
       >
@@ -221,15 +212,15 @@ function ModuleCard({ mod }: { mod: Module }) {
         <div id={`details-${mod.id}`} className="mt-4 space-y-4">
           {showDescription ? (
             <div>
-              <div className="text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Description</div>
-              <p className="mt-1 text-sm text-zinc-700 dark:text-zinc-300">{mod.long}</p>
+              <div className="text-xs uppercase tracking-wide text-gray-500">Description</div>
+              <p className="mt-1 text-sm text-gray-700">{mod.long}</p>
             </div>
           ) : null}
 
           {showAcceptance ? (
             <div>
-              <div className="text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Acceptance Criteria</div>
-              <ul className="mt-1 list-disc pl-5 text-sm text-zinc-700 dark:text-zinc-300 space-y-1">
+              <div className="text-xs uppercase tracking-wide text-gray-500">Acceptance Criteria</div>
+              <ul className="mt-1 list-disc pl-5 text-sm text-gray-700 space-y-1">
                 {mod.acceptance?.map((a, i) => (
                   <li key={i}>{a}</li>
                 ))}
@@ -239,8 +230,8 @@ function ModuleCard({ mod }: { mod: Module }) {
 
           {showDeliverables ? (
             <div>
-              <div className="text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Deliverables</div>
-              <ul className="mt-1 list-disc pl-5 text-sm text-zinc-700 dark:text-zinc-300 space-y-1">
+              <div className="text-xs uppercase tracking-wide text-gray-500">Deliverables</div>
+              <ul className="mt-1 list-disc pl-5 text-sm text-gray-700 space-y-1">
                 {mod.deliverables?.map((d, i) => (
                   <li key={i}>{d}</li>
                 ))}
@@ -249,47 +240,6 @@ function ModuleCard({ mod }: { mod: Module }) {
           ) : null}
         </div>
       ) : null}
-    </div>
-  );
-}
-
-interface Profile {
-  name: string;
-  avatar: string;
-  title: string;
-  stars: number;
-  badgeLabel: string;
-}
-
-function ProfileCard({ profile, gigTitle, progressPercent, showBadge }: { 
-  profile: Profile; 
-  gigTitle: string; 
-  progressPercent: number; 
-  showBadge: boolean; 
-}) {
-  return (
-    <div className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-800 p-4 bg-white/70 dark:bg-zinc-900/60 backdrop-blur" data-testid="profile-card">
-      <div className="flex items-center gap-3">
-        <img src={profile.avatar} alt={`${profile.name} avatar`} className="h-12 w-12 rounded-full" />
-        <div>
-          <div className="text-sm text-zinc-500 dark:text-zinc-400">Developer</div>
-          <div className="text-base font-semibold text-zinc-900 dark:text-zinc-50">{profile.name}</div>
-          <div className="text-xs text-zinc-500 dark:text-zinc-400">{profile.title}</div>
-        </div>
-        {showBadge ? (
-          <span className="ml-auto inline-flex items-center gap-2 rounded-full bg-emerald-100 text-emerald-700 px-2.5 py-1 text-xs font-medium" title={profile.badgeLabel} data-testid="profile-badge">
-            <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
-            {profile.badgeLabel}
-          </span>
-        ) : null}
-      </div>
-      <div className="mt-4 text-xs text-zinc-500 dark:text-zinc-400">
-        Current gig: <span className="font-medium text-zinc-800 dark:text-zinc-200">{gigTitle}</span>
-      </div>
-      <div className="mt-2">
-        <ProgressBar value={progressPercent} />
-        <div className="mt-1 text-right text-xs text-zinc-500 dark:text-zinc-400">{progressPercent}% complete</div>
-      </div>
     </div>
   );
 }
@@ -309,7 +259,6 @@ export function LiveGigModules(props: LiveGigModulesProps) {
   const data = props && props.gig ? props.gig : gig;
   const progress = useMemo(() => calcProgress(data.modules), [data.modules]);
   const doneCount = useMemo(() => data.modules.filter((m) => m.status === "done").length, [data.modules]);
-  const badgeVisible = progress === 100; // badge appears only when the gig is completed
 
   // Run self-tests in dev on client only
   useEffect(() => {
@@ -322,86 +271,88 @@ export function LiveGigModules(props: LiveGigModulesProps) {
   }, []);
 
   return (
-    <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-10" data-testid="live-gig-modules">
+    <div className="container mx-auto px-4 py-8" data-testid="live-gig-modules">
       {/* Header */}
-      <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-        <div className="max-w-2xl">
-          <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 text-emerald-700 px-3 py-1 text-xs font-semibold mb-3">
-            <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
-            Live pilot gig
-          </div>
-          <h1 className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-zinc-50">{data.title}</h1>
-          <p className="mt-2 text-zinc-600 dark:text-zinc-300">{data.summary}</p>
-          <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
-            <span>
-              Org:
-              <a className="ml-1 underline underline-offset-4 hover:opacity-80" href={data.org.url}>
-                {data.org.name}
-              </a>
-            </span>
-            <span>
-              Timeframe:
-              <strong className="ml-1 text-zinc-800 dark:text-zinc-200">{data.timeframe.start}</strong>
-              <span> to </span>
-              <strong className="text-zinc-800 dark:text-zinc-200">{data.timeframe.end}</strong>
-            </span>
-            <span>
-              Developer:
-              <strong className="ml-1 text-zinc-800 dark:text-zinc-200">{data.developer.name}</strong>
-            </span>
-          </div>
+      <div className="text-center mb-12">
+        <div className="inline-flex items-center gap-2 rounded-full bg-contribo-gold/10 text-contribo-black px-3 py-1 text-xs font-semibold mb-4">
+          <span className="inline-block h-2 w-2 rounded-full bg-contribo-gold" />
+          Live pilot gig
         </div>
-        <div className="w-full md:w-80 space-y-4">
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-4 bg-white/70 dark:bg-zinc-900/60 backdrop-blur">
-            <div className="text-sm text-zinc-500 dark:text-zinc-400">Overall Progress</div>
-            <div className="mt-2 flex items-end justify-between">
-              <div className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">{progress}%</div>
-              <div className="text-xs text-zinc-500 dark:text-zinc-400">{doneCount} / {data.modules.length} done</div>
+        <h1 className="text-3xl md:text-4xl font-bold text-contribo-black mb-4">{data.title}</h1>
+        <p className="text-lg text-contribo-text max-w-3xl mx-auto mb-6">{data.summary}</p>
+        
+        <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-600">
+          <span>
+            Org:
+            <a className="ml-1 underline underline-offset-4 hover:opacity-80 text-contribo-black" href={data.org.url}>
+              {data.org.name}
+            </a>
+          </span>
+          <span>
+            Timeframe:
+            <strong className="ml-1 text-contribo-black">{data.timeframe.start}</strong>
+            <span> to </span>
+            <strong className="text-contribo-black">{data.timeframe.end}</strong>
+          </span>
+          <span>
+            Developer:
+            <strong className="ml-1 text-contribo-black">{data.developer.name}</strong>
+          </span>
+        </div>
+      </div>
+
+      {/* Progress Summary */}
+      <div className="max-w-2xl mx-auto mb-12">
+        <div className="rounded-lg border border-gray-200 p-6 bg-white">
+          <div className="text-center">
+            <div className="text-sm text-gray-500 mb-2">Overall Progress</div>
+            <div className="flex items-end justify-center gap-4 mb-4">
+              <div className="text-4xl font-bold text-contribo-black">{progress}%</div>
+              <div className="text-sm text-gray-500">{doneCount} / {data.modules.length} modules done</div>
             </div>
-            <div className="mt-3"><ProgressBar value={progress} /></div>
-            <div className="mt-4 text-xs text-zinc-500 dark:text-zinc-400 space-x-3">
+            <ProgressBar value={progress} />
+            <div className="mt-4 text-xs text-gray-500 space-x-4">
               {data.links?.map((l) => (
-                <a key={l.label} href={l.href} className="underline underline-offset-4 hover:opacity-80">{l.label}</a>
+                <a key={l.label} href={l.href} className="underline underline-offset-4 hover:opacity-80 text-contribo-black">{l.label}</a>
               ))}
             </div>
           </div>
-          <ProfileCard profile={data.profile || gig.profile} gigTitle={data.title} progressPercent={progress} showBadge={badgeVisible} />
         </div>
       </div>
 
       {/* Modules Grid */}
-      <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
         {data.modules.map((m) => (
           <ModuleCard key={m.id} mod={m} />
         ))}
       </div>
 
       {/* How It Works */}
-      <div className="mt-12 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 bg-white/70 dark:bg-zinc-900/60 backdrop-blur">
-        <div className="text-sm text-zinc-500 dark:text-zinc-400">How it works</div>
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="rounded-lg border border-gray-200 p-8 bg-white">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-bold text-contribo-black mb-2">How it works</h2>
+          <p className="text-gray-600">Transparency signals: named developer, public acceptance criteria, and visible progress timeline.</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
             { step: 1, title: "Post", copy: "Define a crisp task and timeline." },
             { step: 2, title: "Match", copy: "Assign a developer and break work into 4 modules." },
             { step: 3, title: "Deliver", copy: "Ship module by module with public progress." },
           ].map((s) => (
-            <div key={s.step} className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-4">
-              <div className="text-xs text-zinc-500 dark:text-zinc-400">Step {s.step}</div>
-              <div className="mt-1 text-lg font-semibold text-zinc-900 dark:text-zinc-50">{s.title}</div>
-              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">{s.copy}</p>
+            <div key={s.step} className="text-center p-6 rounded-lg border border-gray-200 bg-gray-50">
+              <div className="text-sm text-gray-500 mb-2">Step {s.step}</div>
+              <div className="text-xl font-semibold text-contribo-black mb-2">{s.title}</div>
+              <p className="text-sm text-gray-600">{s.copy}</p>
             </div>
           ))}
-        </div>
-        <div className="mt-6 text-xs text-zinc-500 dark:text-zinc-400">
-          Transparency signals: named developer, public acceptance criteria, and visible progress timeline.
         </div>
       </div>
 
       {/* Footer note */}
-      <div className="mt-8 text-center text-xs text-zinc-500 dark:text-zinc-400">
-        Tip: Mark modules as <span className="font-medium text-emerald-600 dark:text-emerald-400">Done</span> in the data object to auto-update progress.
+      <div className="mt-8 text-center text-xs text-gray-500">
+        Tip: Mark modules as <span className="font-medium text-contribo-gold">Done</span> in the data object to auto-update progress.
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -448,18 +399,6 @@ function runSelfTests() {
     // Test 10: 100 percent when all modules are done
     const allDone = gig.modules.map((m) => ({ ...m, status: "done" }));
     assert(calcProgress(allDone) === 100, "calcProgress should be 100 when all modules are done");
-
-    // Test 11: Badge must not show until completion
-    const notDone = gig.modules.map((m, i) => ({ ...m, status: i < 3 ? "done" : "not_started" }));
-    const prog75 = calcProgress(notDone);
-    const badgeVisibleBefore = prog75 === 100;
-    assert(badgeVisibleBefore === false, "Badge should be hidden before completion");
-
-    // Test 12: Badge must show at completion
-    const allDone2 = gig.modules.map((m) => ({ ...m, status: "done" }));
-    const prog100 = calcProgress(allDone2);
-    const badgeVisibleAfter = prog100 === 100;
-    assert(badgeVisibleAfter === true, "Badge should be visible upon completion");
 
     console.info("LiveGigModules self-tests passed.");
   } catch (e) {
