@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 
 /**
  * Contribo - Live Gig Modules Component
@@ -164,14 +164,42 @@ interface Module {
 
 function ModuleCard({ mod }: { mod: Module }) {
   const [open, setOpen] = useState(false);
+  const [contentHeight, setContentHeight] = useState(0);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const showDescription = Boolean(mod.long);
   const showAcceptance = hasItems(mod.acceptance);
   const showDeliverables = hasItems(mod.deliverables);
   const showProof = Boolean(mod.proof_of_delivery);
 
+  // Measure content height when it changes
+  useEffect(() => {
+    if (contentRef.current) {
+      setContentHeight(contentRef.current.scrollHeight);
+    }
+  }, [showDescription, showAcceptance, showDeliverables, showProof]);
+
+  // Re-measure height when content is opened
+  useEffect(() => {
+    if (open && contentRef.current) {
+      setContentHeight(contentRef.current.scrollHeight);
+    }
+  }, [open]);
+
+  const handleToggle = () => {
+    setOpen(!open);
+  };
+
   return (
-    <div className="group rounded-lg border border-gray-200 bg-white p-6 hover:shadow-md transition-shadow" data-testid={`module-${mod.id}`}>
+    <div 
+      className={`group rounded-lg border border-gray-200 bg-white p-6 hover:shadow-md transition-all duration-500 ease-out ${
+        open ? 'shadow-sm' : ''
+      }`}
+      data-testid={`module-${mod.id}`}
+      style={{
+        transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)'
+      }}
+    >
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="text-sm text-gray-500">Module</div>
@@ -194,25 +222,33 @@ function ModuleCard({ mod }: { mod: Module }) {
       </div>
 
       <button
-        onClick={() => setOpen(!open)}
+        onClick={handleToggle}
         className="mt-4 text-sm font-medium text-contribo-black underline underline-offset-4 hover:opacity-80 transition-all duration-200"
         aria-expanded={open}
         aria-controls={`details-${mod.id}`}
+        data-module-id={mod.id}
       >
         {open ? "Hide details" : "Show details"}
       </button>
 
       {/* Smoother animated details section */}
       <div 
-        className={`overflow-hidden transition-all duration-500 ease-out ${
-          open ? 'max-h-[2000px] opacity-100 mt-4' : 'max-h-0 opacity-0 mt-0'
-        }`}
+        className="overflow-hidden transition-all duration-500 ease-out"
         aria-hidden={!open}
+        data-module-id={mod.id}
         style={{
+          height: open ? `${contentHeight}px` : '0px',
+          opacity: open ? 1 : 0,
+          marginTop: open ? '16px' : '0px',
           transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)'
         }}
       >
-        <div id={`details-${mod.id}`} className="space-y-4 pt-4 border-t border-gray-100">
+        <div 
+          ref={contentRef}
+          id={`details-${mod.id}`} 
+          className="space-y-4 pt-4 border-t border-gray-100"
+          data-module-id={mod.id}
+        >
           {showDescription ? (
             <div>
               <div className="text-xs uppercase tracking-wide text-gray-500 font-medium">Description</div>

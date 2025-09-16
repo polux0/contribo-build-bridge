@@ -21,7 +21,12 @@ const Header = () => {
   };
 
   const handleBack = () => {
-    navigate('/');
+    // If on live-gig page, go back to opportunities, otherwise go to home
+    if (location.pathname === '/live-gig') {
+      navigate('/opportunities');
+    } else {
+      navigate('/');
+    }
   };
 
   // Don't show back button or sign out button on the home page

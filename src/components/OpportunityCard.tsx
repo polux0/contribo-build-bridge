@@ -7,6 +7,7 @@ import { ExternalLink, Calendar, DollarSign, GitBranch, Clock, CheckCircle } fro
 import { useApplicationFlow } from '@/hooks/useApplicationFlow';
 import { useApplicationStatus } from '@/hooks/useApplicationStatus';
 import { trackPH } from '@/lib/posthog-script';
+import { Link } from 'react-router-dom';
 
 interface OpportunityCardProps {
   opportunity: Opportunity;
@@ -107,6 +108,14 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity }) => {
   };
 
   const buttonState = getButtonState();
+
+  // Check if this opportunity is related to the CollabBerry gig
+  const isCollabBerryGig = () => {
+    const title = opportunity.title.toLowerCase();
+    const company = opportunity.company_name.toLowerCase();
+    return title.includes('collabberry') || title.includes('safe') || title.includes('multisig') || 
+           company.includes('collabberry');
+  };
 
   return (
     <Card className="w-full max-w-2xl mx-auto hover:shadow-lg transition-shadow duration-200">
@@ -222,20 +231,30 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity }) => {
           {buttonState.text}
         </Button>
         
-        {opportunity.long_description_url && (
+        {(opportunity.long_description_url || isCollabBerryGig()) && (
           <Button 
             variant="outline" 
             asChild
           >
-            <a 
-              href={opportunity.long_description_url} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2"
-            >
-              <ExternalLink className="w-4 h-4" />
-              Learn More
-            </a>
+            {isCollabBerryGig() ? (
+              <Link 
+                to="/live-gig"
+                className="flex items-center justify-center gap-2"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Learn More
+              </Link>
+            ) : (
+              <a 
+                href={opportunity.long_description_url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Learn More
+              </a>
+            )}
           </Button>
         )}
       </CardFooter>
