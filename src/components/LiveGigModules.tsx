@@ -350,26 +350,6 @@ export function LiveGigModules(props: LiveGigModulesProps) {
         ))}
       </div>
 
-      {/* How It Works */}
-      <div className="rounded-lg border border-gray-200 p-8 bg-white">
-        <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-contribo-black mb-2">How it works</h2>
-          <p className="text-gray-600">Transparency signals: named developer, public acceptance criteria, and visible progress timeline.</p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[
-            { step: 1, title: "Post", copy: "Define a crisp task and timeline." },
-            { step: 2, title: "Match", copy: "Assign a developer and break work into 4 modules." },
-            { step: 3, title: "Deliver", copy: "Ship module by module with public progress." },
-          ].map((s) => (
-            <div key={s.step} className="text-center p-6 rounded-lg border border-gray-200 bg-gray-50">
-              <div className="text-sm text-gray-500 mb-2">Step {s.step}</div>
-              <div className="text-xl font-semibold text-contribo-black mb-2">{s.title}</div>
-              <p className="text-sm text-gray-600">{s.copy}</p>
-            </div>
-          ))}
-        </div>
-      </div>
 
       {/* Footer note */}
       <div className="mt-8 text-center text-xs text-gray-500">
