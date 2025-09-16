@@ -45,7 +45,7 @@ const gig = {
         "MINTER_ROLE enforced for TP minting",
       ],
       deliverables: ["Admin config UI", "Validation logic", "Role checks"],
-      proof_of_delivery: "https://example.com/video1.mp4", // Video URL for proof
+      // proof_of_delivery: "https://example.com/video1.mp4", // Video URL for proof
     },
     {
       id: "m2",
@@ -62,7 +62,7 @@ const gig = {
         "Chunking logic enforced when calldata too large",
       ],
       deliverables: ["Rounds UI", "Preview API", "Propose API", "Status polling"],
-      proof_of_delivery: "https://example.com/video2.mp4", // Video URL for proof
+      // proof_of_delivery: "https://example.com/video2.mp4", // Video URL for proof
     },
     {
       id: "m3",
@@ -79,7 +79,7 @@ const gig = {
         "CSV export includes all required fields",
       ],
       deliverables: ["Status UI", "Retry logic", "CSV export API"],
-      proof_of_delivery: "https://example.com/video3.mp4", // Video URL for proof
+      // proof_of_delivery: "https://example.com/video3.mp4", // Video URL for proof
     },
     {
       id: "m4",
@@ -97,7 +97,7 @@ const gig = {
         "Tracked and exportable like round-based payouts",
       ],
       deliverables: ["Manual payout UI", "Validation reuse", "Safe integration"],
-      proof_of_delivery: "https://example.com/video4.mp4", // Video URL for proof
+      // proof_of_delivery: "https://example.com/video4.mp4", // Video URL for proof
     },
   ],
   links: [
