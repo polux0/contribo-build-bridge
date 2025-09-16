@@ -1,4 +1,10 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
+import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import ApplicationSuccessModal from "@/components/ApplicationSuccessModal";
 
 /**
  * Contribo - Live Gig Modules Component
@@ -117,6 +123,8 @@ function statusLabel(s: string) {
       return "Blocked";
     case "done":
       return "Done";
+    case "waiting_for_review":
+      return "Waiting for review";
     default:
       return String(s || "");
   }
@@ -129,6 +137,7 @@ function statusClasses(s: string) {
     in_progress: `${base} bg-blue-100 text-blue-700`,
     blocked: `${base} bg-amber-100 text-amber-700`,
     done: `${base} bg-emerald-100 text-emerald-700`,
+    waiting_for_review: `${base} bg-purple-100 text-purple-700`,
   };
   return map[s] || base;
 }
@@ -162,10 +171,17 @@ interface Module {
   proof_of_delivery?: string;
 }
 
-function ModuleCard({ mod }: { mod: Module }) {
+function ModuleCard({ mod, isSpecialUser, updateModuleStatus }: { mod: Module; isSpecialUser: boolean; updateModuleStatus: (moduleId: string, newStatus: string) => void }) {
   const [open, setOpen] = useState(false);
   const [contentHeight, setContentHeight] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
+  
+  // Modal state for completion form
+  const [modalOpen, setModalOpen] = useState(false);
+  const [pullRequestUrl, setPullRequestUrl] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const showDescription = Boolean(mod.long);
   const showAcceptance = hasItems(mod.acceptance);
@@ -188,6 +204,51 @@ function ModuleCard({ mod }: { mod: Module }) {
 
   const handleToggle = () => {
     setOpen(!open);
+  };
+
+  // URL validation helper
+  const isValidUrl = (url: string) => {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  // Handle form submission
+  const handleSubmitCompletion = async () => {
+    if (!pullRequestUrl.trim() || !videoUrl.trim()) {
+      alert("Please provide both Pull Request URL and Video URL");
+      return;
+    }
+
+    if (!isValidUrl(pullRequestUrl) || !isValidUrl(videoUrl)) {
+      alert("Please provide valid URLs for both fields");
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      // Update module status to waiting for review
+      updateModuleStatus(mod.id, "waiting_for_review");
+      
+      // Close form modal and show success modal
+      setModalOpen(false);
+      setShowSuccessModal(true);
+      setIsSubmitting(false);
+      
+      // Reset form fields
+      setPullRequestUrl("");
+      setVideoUrl("");
+    }, 1000);
+  };
+
+  // Handle success modal close
+  const handleSuccessModalClose = () => {
+    setShowSuccessModal(false);
   };
 
   return (
@@ -221,15 +282,75 @@ function ModuleCard({ mod }: { mod: Module }) {
         </span>
       </div>
 
-      <button
-        onClick={handleToggle}
-        className="mt-4 text-sm font-medium text-contribo-black underline underline-offset-4 hover:opacity-80 transition-all duration-200"
-        aria-expanded={open}
-        aria-controls={`details-${mod.id}`}
-        data-module-id={mod.id}
-      >
-        {open ? "Hide details" : "Show details"}
-      </button>
+              <div className="mt-4 flex items-center justify-between">
+                <button
+                  onClick={handleToggle}
+                  className="text-sm font-medium text-contribo-black underline underline-offset-4 hover:opacity-80 transition-all duration-200"
+                  aria-expanded={open}
+                  aria-controls={`details-${mod.id}`}
+                  data-module-id={mod.id}
+                >
+                  {open ? "Hide details" : "Show details"}
+                </button>
+                
+                {/* Special Completed button for target developer */}
+                {isSpecialUser && (
+                  <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+                    <DialogTrigger asChild>
+                      <Button
+                        className="bg-contribo-black hover:bg-gray-800 text-white text-xs px-3 py-1"
+                        size="sm"
+                      >
+                        Mark Completed
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>Complete Module: {mod.title}</DialogTitle>
+                      </DialogHeader>
+                      
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="pr-url">Pull Request URL</Label>
+                          <Input
+                            id="pr-url"
+                            type="url"
+                            placeholder="https://github.com/owner/repo/pull/123"
+                            value={pullRequestUrl}
+                            onChange={(e) => setPullRequestUrl(e.target.value)}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="video-url">Proof of Delivery Video URL</Label>
+                          <Input
+                            id="video-url"
+                            type="url"
+                            placeholder="https://youtube.com/watch?v=..."
+                            value={videoUrl}
+                            onChange={(e) => setVideoUrl(e.target.value)}
+                          />
+                        </div>
+                        <div className="flex gap-3 pt-4">
+                          <Button
+                            onClick={handleSubmitCompletion}
+                            disabled={isSubmitting}
+                            className="flex-1 bg-contribo-black hover:bg-gray-800"
+                          >
+                            {isSubmitting ? "Submitting..." : "Submit Completion"}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => setModalOpen(false)}
+                            disabled={isSubmitting}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                )}
+              </div>
 
       {/* Smoother animated details section */}
       <div 
@@ -299,6 +420,18 @@ function ModuleCard({ mod }: { mod: Module }) {
           ) : null}
         </div>
       </div>
+
+      {/* Application Success Modal */}
+      <ApplicationSuccessModal
+        isOpen={showSuccessModal}
+        onClose={handleSuccessModalClose}
+        opportunityTitle={mod.title}
+        companyName="Module Completion"
+        customTitle="Module Completed!"
+        customMessage="We'll write to you as soon as the submission is reviewed."
+        customBadgeText="Submitted Successfully"
+        customShareText={`I just completed a module for ${mod.title}! 🚀`}
+      />
     </div>
   );
 }
@@ -315,9 +448,27 @@ interface LiveGigModulesProps {
 }
 
 export function LiveGigModules(props: LiveGigModulesProps) {
-  const data = props && props.gig ? props.gig : gig;
-  const progress = useMemo(() => calcProgress(data.modules), [data.modules]);
-  const doneCount = useMemo(() => data.modules.filter((m) => m.status === "done").length, [data.modules]);
+  const { user } = useUnifiedAuth();
+  const initialData = props && props.gig ? props.gig : gig;
+  const [modules, setModules] = useState(initialData.modules);
+  const data = { ...initialData, modules };
+  const progress = useMemo(() => calcProgress(modules), [modules]);
+  const doneCount = useMemo(() => modules.filter((m) => m.status === "done").length, [modules]);
+
+  // Check if current user is the target developer
+  const isTargetDeveloper = () => {
+    if (!user || !user.email) return false;
+    return user.email.toLowerCase() === "alexusnavas@gmail.com";
+  };
+
+  const isSpecialUser = isTargetDeveloper();
+
+  // Function to update module status
+  const updateModuleStatus = (moduleId: string, newStatus: string) => {
+    setModules(prev => prev.map(module => 
+      module.id === moduleId ? { ...module, status: newStatus } : module
+    ));
+  };
 
   // Run self-tests in dev on client only
   useEffect(() => {
@@ -381,8 +532,8 @@ export function LiveGigModules(props: LiveGigModulesProps) {
 
       {/* Modules Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
-        {data.modules.map((m) => (
-          <ModuleCard key={m.id} mod={m} />
+        {modules.map((m) => (
+          <ModuleCard key={m.id} mod={m} isSpecialUser={isSpecialUser} updateModuleStatus={updateModuleStatus} />
         ))}
       </div>
 
