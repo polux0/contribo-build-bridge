@@ -35,7 +35,6 @@ const gig = {
       owner: "Jane Dev",
       due: "2025-09-13",
       status: "in_progress", // not_started | in_progress | blocked | done
-      estimate_hours: 6,
       short:
         "Configure Safe, stablecoin, and recognition mode (TeamPoints mint or DAO token).",
       long:
@@ -46,6 +45,7 @@ const gig = {
         "MINTER_ROLE enforced for TP minting",
       ],
       deliverables: ["Admin config UI", "Validation logic", "Role checks"],
+      proof_of_delivery: "https://example.com/video1.mp4", // Video URL for proof
     },
     {
       id: "m2",
@@ -53,7 +53,6 @@ const gig = {
       owner: "Jane Dev",
       due: "2025-09-16",
       status: "not_started",
-      estimate_hours: 10,
       short: "Implement payout rounds with preview, proposal to Safe, and execution tracking.",
       long:
         "Frontend flow: list incomplete rounds, preview table of recipients, propose transactions (fiat or recognition or both). API endpoints for preview, propose, and status. Includes chunking logic for MultiSend transactions.",
@@ -63,6 +62,7 @@ const gig = {
         "Chunking logic enforced when calldata too large",
       ],
       deliverables: ["Rounds UI", "Preview API", "Propose API", "Status polling"],
+      proof_of_delivery: "https://example.com/video2.mp4", // Video URL for proof
     },
     {
       id: "m3",
@@ -70,7 +70,6 @@ const gig = {
       owner: "Jane Dev",
       due: "2025-09-19",
       status: "not_started",
-      estimate_hours: 8,
       short: "Display payout history with statuses, retries, Safe links, and CSV export.",
       long:
         "UI lists payouts with details of tx_proposals, attempts, Safe links, and recipients snapshot. Retry on failed proposals increments attempt count. CSV export provides full audit trace with on-chain and DB metadata.",
@@ -80,6 +79,7 @@ const gig = {
         "CSV export includes all required fields",
       ],
       deliverables: ["Status UI", "Retry logic", "CSV export API"],
+      proof_of_delivery: "https://example.com/video3.mp4", // Video URL for proof
     },
     {
       id: "m4",
@@ -87,7 +87,6 @@ const gig = {
       owner: "Jane Dev",
       due: "2025-09-25",
       status: "not_started",
-      estimate_hours: 6,
       short:
         "Enable ad-hoc payouts (stablecoin and TP mint) via Safe with identical validation and tracking.",
       long:
@@ -98,6 +97,7 @@ const gig = {
         "Tracked and exportable like round-based payouts",
       ],
       deliverables: ["Manual payout UI", "Validation reuse", "Safe integration"],
+      proof_of_delivery: "https://example.com/video4.mp4", // Video URL for proof
     },
   ],
   links: [
@@ -155,11 +155,11 @@ interface Module {
   owner: string;
   due: string;
   status: string;
-  estimate_hours?: number;
   short: string;
   long?: string;
   acceptance?: string[];
   deliverables?: string[];
+  proof_of_delivery?: string;
 }
 
 function ModuleCard({ mod }: { mod: Module }) {
@@ -168,7 +168,7 @@ function ModuleCard({ mod }: { mod: Module }) {
   const showDescription = Boolean(mod.long);
   const showAcceptance = hasItems(mod.acceptance);
   const showDeliverables = hasItems(mod.deliverables);
-  const hasEstimate = typeof mod.estimate_hours === "number";
+  const showProof = Boolean(mod.proof_of_delivery);
 
   return (
     <div className="group rounded-lg border border-gray-200 bg-white p-6 hover:shadow-md transition-shadow" data-testid={`module-${mod.id}`}>
@@ -191,38 +191,41 @@ function ModuleCard({ mod }: { mod: Module }) {
           Due:
           <strong className="ml-1 font-medium text-gray-800">{mod.due}</strong>
         </span>
-        {hasEstimate ? (
-          <span>
-            Est:
-            <strong className="ml-1 font-medium text-gray-800">{mod.estimate_hours}h</strong>
-          </span>
-        ) : null}
       </div>
 
       <button
         onClick={() => setOpen(!open)}
-        className="mt-4 text-sm font-medium text-contribo-black underline underline-offset-4 hover:opacity-80"
+        className="mt-4 text-sm font-medium text-contribo-black underline underline-offset-4 hover:opacity-80 transition-all duration-200"
         aria-expanded={open}
         aria-controls={`details-${mod.id}`}
       >
         {open ? "Hide details" : "Show details"}
       </button>
 
-      {open ? (
-        <div id={`details-${mod.id}`} className="mt-4 space-y-4">
+      {/* Smoother animated details section */}
+      <div 
+        className={`overflow-hidden transition-all duration-500 ease-out ${
+          open ? 'max-h-[2000px] opacity-100 mt-4' : 'max-h-0 opacity-0 mt-0'
+        }`}
+        aria-hidden={!open}
+        style={{
+          transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)'
+        }}
+      >
+        <div id={`details-${mod.id}`} className="space-y-4 pt-4 border-t border-gray-100">
           {showDescription ? (
             <div>
-              <div className="text-xs uppercase tracking-wide text-gray-500">Description</div>
-              <p className="mt-1 text-sm text-gray-700">{mod.long}</p>
+              <div className="text-xs uppercase tracking-wide text-gray-500 font-medium">Description</div>
+              <p className="mt-2 text-sm text-gray-700 leading-relaxed">{mod.long}</p>
             </div>
           ) : null}
 
           {showAcceptance ? (
             <div>
-              <div className="text-xs uppercase tracking-wide text-gray-500">Acceptance Criteria</div>
-              <ul className="mt-1 list-disc pl-5 text-sm text-gray-700 space-y-1">
+              <div className="text-xs uppercase tracking-wide text-gray-500 font-medium">Acceptance Criteria</div>
+              <ul className="mt-2 list-disc pl-5 text-sm text-gray-700 space-y-1">
                 {mod.acceptance?.map((a, i) => (
-                  <li key={i}>{a}</li>
+                  <li key={i} className="leading-relaxed">{a}</li>
                 ))}
               </ul>
             </div>
@@ -230,16 +233,36 @@ function ModuleCard({ mod }: { mod: Module }) {
 
           {showDeliverables ? (
             <div>
-              <div className="text-xs uppercase tracking-wide text-gray-500">Deliverables</div>
-              <ul className="mt-1 list-disc pl-5 text-sm text-gray-700 space-y-1">
+              <div className="text-xs uppercase tracking-wide text-gray-500 font-medium">Deliverables</div>
+              <ul className="mt-2 list-disc pl-5 text-sm text-gray-700 space-y-1">
                 {mod.deliverables?.map((d, i) => (
-                  <li key={i}>{d}</li>
+                  <li key={i} className="leading-relaxed">{d}</li>
                 ))}
               </ul>
             </div>
           ) : null}
+
+          {showProof ? (
+            <div>
+              <div className="text-xs uppercase tracking-wide text-gray-500 font-medium">Proof of Delivery</div>
+              <div className="mt-2">
+                <a 
+                  href={mod.proof_of_delivery} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-sm text-contribo-black hover:text-contribo-gold transition-colors duration-200 underline underline-offset-4"
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                    <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                  </svg>
+                  Watch delivery video
+                </a>
+              </div>
+            </div>
+          ) : null}
         </div>
-      ) : null}
+      </div>
     </div>
   );
 }
