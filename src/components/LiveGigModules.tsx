@@ -5,6 +5,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import ApplicationSuccessModal from "@/components/ApplicationSuccessModal";
+<<<<<<< Updated upstream
+=======
+import { config } from '@/lib/config';
+>>>>>>> Stashed changes
 
 /**
  * Contribo - Live Gig Modules Component
@@ -527,7 +531,11 @@ export function LiveGigModules(props: LiveGigModulesProps) {
   // Check if current user is the target developer
   const isTargetDeveloper = () => {
     if (!user || !user.email) return false;
+<<<<<<< Updated upstream
     return user.email.toLowerCase() === "alexusnavas@gmail.com";
+=======
+    return user.email.toLowerCase() === config.targetDeveloperEmail;
+>>>>>>> Stashed changes
   };
 
   const isSpecialUser = isTargetDeveloper();

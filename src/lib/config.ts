@@ -21,6 +21,7 @@ export const config = {
   
   // External Services
   calendarUrl: import.meta.env.VITE_CALENDAR_URL || 'https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ2oMnZQ7aa_oNvq19sTTR2mJTVYo9dqBH_e6Or6mSSoyVintxpIrmUMFNQwVDtn3inSMStvu6Cs',
+  targetDeveloperEmail: import.meta.env.VITE_TARGET_DEVELOPER_EMAIL || 'emersondaniel300@gmail.com',
 } as const;
 
 // Type-safe config access
