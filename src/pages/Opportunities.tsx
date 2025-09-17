@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
-import { useResumeUpload } from "@/hooks/useResumeUpload";
 import { useOpportunities } from "@/hooks/useOpportunities";
 import OpportunityCard from "@/components/OpportunityCard";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,14 +20,10 @@ const Opportunities = () => {
   // Check if user has GitHub access
   const hasGithub = Boolean(user?.github_username);
   const { opportunities, loading: opportunitiesLoading, error: opportunitiesError } = useOpportunities();
-  const { uploadResume, uploading } = useResumeUpload();
-  const [hasResume, setHasResume] = useState(false);
-  const [checkingResume, setCheckingResume] = useState(false);
 
   // Add this debugging log
   devLog(' Opportunities page state:', {
     authLoading: loading,
-    checkingResume,
     opportunitiesLoading,
     hasUser: !!user,
     opportunitiesCount: opportunities.length,
@@ -49,75 +44,7 @@ const Opportunities = () => {
     }
   };
 
-  const handleResumeUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files && files[0]) {
-      devLog('Starting resume upload for file:', files[0].name);
-      const success = await uploadResume(files[0]);
-      if (success) {
-        setHasResume(true);
-        devLog('Resume upload successful');
-      } else {
-        devLog('Resume upload failed');
-      }
-    }
-  };
 
-  // Check if user already has a resume
-  useEffect(() => {
-    const checkUserResume = async () => {
-      if (user) {
-        setCheckingResume(true);
-        try {
-          let query;
-          
-          if (user.auth_provider === 'privy') {
-            // For Privy users, query by privy_user_id in profiles table first
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('id')
-              .eq('privy_user_id', user.id)
-              .single();
-            
-            if (profile) {
-              // Then check resumes table using the profile id
-              query = supabase
-                .from('resumes')
-                .select('id')
-                .eq('user_id', profile.id)
-                .limit(1);
-            } else {
-              // No profile found, so no resume
-              setHasResume(false);
-              setCheckingResume(false);
-              return;
-            }
-          } else {
-            // For Supabase users, query directly by user_id
-            query = supabase
-              .from('resumes')
-              .select('id')
-              .eq('user_id', user.id)
-              .limit(1);
-          }
-
-          const { data, error } = await query;
-
-          if (error) {
-            devError('Error checking resume:', error);
-          } else {
-            setHasResume(data && data.length > 0);
-          }
-        } catch (error) {
-          devError('Error checking resume:', error);
-        } finally {
-          setCheckingResume(false);
-        }
-      }
-    };
-
-    checkUserResume();
-  }, [user]);
 
   // Track GigViewed when opportunities are loaded
   useEffect(() => {
@@ -133,10 +60,9 @@ const Opportunities = () => {
     }
   }, [opportunitiesLoading, opportunities]);
 
-  if (loading || checkingResume || opportunitiesLoading) {
+  if (loading || opportunitiesLoading) {
     devLog('🔍 Opportunities: Showing loading screen because:', {
       authLoading: loading,
-      checkingResume,
       opportunitiesLoading
     });
     return (
@@ -162,25 +88,7 @@ const Opportunities = () => {
             
             {/* User Actions */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
-              {!hasResume && (
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => document.getElementById('resumeInput')?.click()}
-                    className="inline-flex items-center justify-center px-4 py-2 bg-contribo-black text-white text-sm font-medium rounded hover:bg-gray-800 transition-colors duration-200"
-                    disabled={uploading}
-                  >
-                    {uploading ? 'Uploading...' : '📄 Upload Resume for Additional Context'}
-                  </button>
-                  <input
-                    type="file"
-                    id="resumeInput"
-                    className="hidden"
-                    accept=".pdf,.doc,.docx"
-                    onChange={handleResumeUpload}
-                    disabled={uploading}
-                  />
-                </div>
-              )}
+              {/* Resume upload button removed for simplified UX */}
             </div>
             
             {/* GitHub Connection Section for authenticated users without GitHub */}
