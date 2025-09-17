@@ -207,8 +207,6 @@ interface Module {
 
 function ModuleCard({ mod, isSpecialUser, updateModuleStatus }: { mod: Module; isSpecialUser: boolean; updateModuleStatus: (moduleId: string, newStatus: string) => void }) {
   const [open, setOpen] = useState(false);
-  const [contentHeight, setContentHeight] = useState(0);
-  const contentRef = useRef<HTMLDivElement>(null);
   
   // Modal state for completion form
   const [modalOpen, setModalOpen] = useState(false);
@@ -225,21 +223,9 @@ function ModuleCard({ mod, isSpecialUser, updateModuleStatus }: { mod: Module; i
   // Get stored completion data for this module
   const completionData = getModuleCompletion(mod.id);
 
-  // Measure content height when it changes
-  useEffect(() => {
-    if (contentRef.current) {
-      setContentHeight(contentRef.current.scrollHeight);
-    }
-  }, [showDescription, showAcceptance, showDeliverables, showProof]);
-
-  // Re-measure height when content is opened
-  useEffect(() => {
-    if (open && contentRef.current) {
-      setContentHeight(contentRef.current.scrollHeight);
-    }
-  }, [open]);
 
   const handleToggle = () => {
+    console.log(`AA Toggling module ${mod.id}, current state: ${open}`);
     setOpen(!open);
   };
 
@@ -300,12 +286,13 @@ function ModuleCard({ mod, isSpecialUser, updateModuleStatus }: { mod: Module; i
 
   return (
     <div 
-      className={`group rounded-lg border border-gray-200 bg-white p-6 hover:shadow-md transition-all duration-500 ease-out flex flex-col ${
+      className={`group rounded-lg border border-gray-200 bg-white p-8 hover:shadow-md transition-all duration-500 ease-out flex flex-col ${
         open ? 'shadow-sm' : ''
       }`}
       data-testid={`module-${mod.id}`}
       style={{
-        transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)'
+        transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+        minHeight: '280px'
       }}
     >
       <div className="flex-1">
@@ -405,20 +392,18 @@ function ModuleCard({ mod, isSpecialUser, updateModuleStatus }: { mod: Module; i
         )}
       </div>
 
-      {/* Smoother animated details section */}
+      {/* Simple animated details section */}
       <div 
         className="overflow-hidden transition-all duration-500 ease-out"
         aria-hidden={!open}
         data-module-id={mod.id}
         style={{
-          height: open ? `${contentHeight}px` : '0px',
+          maxHeight: open ? '1000px' : '0px',
           opacity: open ? 1 : 0,
-          marginTop: open ? '16px' : '0px',
-          transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)'
+          transition: 'max-height 500ms ease-out, opacity 500ms ease-out'
         }}
       >
         <div 
-          ref={contentRef}
           id={`details-${mod.id}`} 
           className="space-y-4 pt-4 border-t border-gray-100"
           data-module-id={mod.id}
@@ -615,7 +600,7 @@ export function LiveGigModules(props: LiveGigModulesProps) {
       </div>
 
       {/* Modules Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12" style={{ alignItems: 'start' }}>
         {modules.map((m) => (
           <ModuleCard key={m.id} mod={m} isSpecialUser={isSpecialUser} updateModuleStatus={updateModuleStatus} />
         ))}
