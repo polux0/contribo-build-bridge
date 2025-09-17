@@ -18,28 +18,28 @@ import ApplicationSuccessModal from "@/components/ApplicationSuccessModal";
 // -------------------- Data (Edit Me) --------------------
 const gig = {
   id: "gig-001",
-  title: "CollabBerry - Token Payments via SAFE Multisig",
+  title: "Collabberry - Token Payments via SAFE Multisig",
   org: {
-    name: "CollabBerry",
-    url: "https://contribo.xyz",
+    name: "collabberry",
+    url: "https://collabberry.xyz/",
   },
   developer: {
-    name: "Jane Dev",
+    name: "Majormaxx",
     avatar: "https://i.pravatar.cc/100?img=5", // optional
     tagline: "Fullstack engineer - Web3, Safe Protocol, Solidity",
   },
   summary:
     "Pilot implementation of token payouts through SAFE multisig: setup, payouts, tracking, and manual flows, split into 4 clear modules.",
   timeframe: {
-    start: "2025-09-11",
-    end: "2025-09-25",
+    start: "2025-09-17",
+    end: "2025-10-11",
   },
   modules: [
     {
       id: "m1",
       title: "Admin Configuration (Safe and Tokens)",
-      owner: "Jane Dev",
-      due: "2025-09-13",
+      owner: "Majormaxx",
+      due: "2025-09-24",
       status: "in_progress", // not_started | in_progress | blocked | done
       short:
         "Configure Safe, stablecoin, and recognition mode (TeamPoints mint or DAO token).",
@@ -56,8 +56,8 @@ const gig = {
     {
       id: "m2",
       title: "Round-based Payouts (Preview / Propose / Execute)",
-      owner: "Jane Dev",
-      due: "2025-09-16",
+      owner: "Majormaxx",
+      due: "2025-09-30",
       status: "not_started",
       short: "Implement payout rounds with preview, proposal to Safe, and execution tracking.",
       long:
@@ -73,8 +73,8 @@ const gig = {
     {
       id: "m3",
       title: "Status and History (+ CSV Export)",
-      owner: "Jane Dev",
-      due: "2025-09-19",
+      owner: "Majormaxx",
+      due: "2025-10-06",
       status: "not_started",
       short: "Display payout history with statuses, retries, Safe links, and CSV export.",
       long:
@@ -90,8 +90,8 @@ const gig = {
     {
       id: "m4",
       title: "Manual Payouts via Safe",
-      owner: "Jane Dev",
-      due: "2025-09-25",
+      owner: "Majormaxx",
+      due: "2025-10-12",
       status: "not_started",
       short:
         "Enable ad-hoc payouts (stablecoin and TP mint) via Safe with identical validation and tracking.",
@@ -107,10 +107,44 @@ const gig = {
     },
   ],
   links: [
-    { label: "Spec document", href: "#" },
-    { label: "Issue tracker", href: "#" },
+    { label: "Spec document", href: "https://elderly-accordion-7b3.notion.site/Functional-Specification-Token-Payments-via-SAFE-Multisig-1-2426b904fab281e78af2f551c57c12ec" },
   ],
 };
+
+// -------------------- localStorage Helpers --------------------
+interface ModuleCompletionData {
+  pullRequestUrl: string;
+  videoUrl: string;
+  status: string;
+  completedAt: string;
+}
+
+const STORAGE_KEY = 'collabberry-module-completions';
+
+function saveModuleCompletion(moduleId: string, data: ModuleCompletionData) {
+  try {
+    const existing = getModuleCompletions();
+    existing[moduleId] = data;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
+  } catch (error) {
+    console.error('Failed to save module completion:', error);
+  }
+}
+
+function getModuleCompletions(): Record<string, ModuleCompletionData> {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : {};
+  } catch (error) {
+    console.error('Failed to load module completions:', error);
+    return {};
+  }
+}
+
+function getModuleCompletion(moduleId: string): ModuleCompletionData | null {
+  const completions = getModuleCompletions();
+  return completions[moduleId] || null;
+}
 
 // -------------------- Helpers --------------------
 function statusLabel(s: string) {
@@ -187,6 +221,9 @@ function ModuleCard({ mod, isSpecialUser, updateModuleStatus }: { mod: Module; i
   const showAcceptance = hasItems(mod.acceptance);
   const showDeliverables = hasItems(mod.deliverables);
   const showProof = Boolean(mod.proof_of_delivery);
+  
+  // Get stored completion data for this module
+  const completionData = getModuleCompletion(mod.id);
 
   // Measure content height when it changes
   useEffect(() => {
@@ -232,6 +269,16 @@ function ModuleCard({ mod, isSpecialUser, updateModuleStatus }: { mod: Module; i
     
     // Simulate API call
     setTimeout(() => {
+      // Save completion data to localStorage
+      const completionData: ModuleCompletionData = {
+        pullRequestUrl: pullRequestUrl.trim(),
+        videoUrl: videoUrl.trim(),
+        status: "waiting_for_review",
+        completedAt: new Date().toISOString()
+      };
+      
+      saveModuleCompletion(mod.id, completionData);
+      
       // Update module status to waiting for review
       updateModuleStatus(mod.id, "waiting_for_review");
       
@@ -253,7 +300,7 @@ function ModuleCard({ mod, isSpecialUser, updateModuleStatus }: { mod: Module; i
 
   return (
     <div 
-      className={`group rounded-lg border border-gray-200 bg-white p-6 hover:shadow-md transition-all duration-500 ease-out ${
+      className={`group rounded-lg border border-gray-200 bg-white p-6 hover:shadow-md transition-all duration-500 ease-out flex flex-col ${
         open ? 'shadow-sm' : ''
       }`}
       data-testid={`module-${mod.id}`}
@@ -261,96 +308,102 @@ function ModuleCard({ mod, isSpecialUser, updateModuleStatus }: { mod: Module; i
         transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)'
       }}
     >
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <div className="text-sm text-gray-500">Module</div>
-          <h3 className="text-lg font-semibold text-gray-900 leading-tight">{mod.title}</h3>
+      <div className="flex-1">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="text-sm text-gray-500">Module</div>
+            <h3 className="text-lg font-semibold text-gray-900 leading-tight">{mod.title}</h3>
+          </div>
+          <span className={statusClasses(mod.status)}>{statusLabel(mod.status)}</span>
         </div>
-        <span className={statusClasses(mod.status)}>{statusLabel(mod.status)}</span>
+
+        <p className="mt-2 text-sm text-gray-600">{mod.short}</p>
+
+        <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-gray-500">
+          <span className="inline-flex items-center gap-1">
+            Owner:
+            <strong className="ml-1 font-medium text-gray-800">{mod.owner}</strong>
+          </span>
+          <span>
+            Due:
+            <strong className="ml-1 font-medium text-gray-800">{mod.due}</strong>
+          </span>
+          <span>
+            Payout:
+            <strong className="ml-1 font-medium text-gray-800">$800 USDC</strong>
+          </span>
+        </div>
       </div>
 
-      <p className="mt-2 text-sm text-gray-600">{mod.short}</p>
-
-      <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-gray-500">
-        <span className="inline-flex items-center gap-1">
-          Owner:
-          <strong className="ml-1 font-medium text-gray-800">{mod.owner}</strong>
-        </span>
-        <span>
-          Due:
-          <strong className="ml-1 font-medium text-gray-800">{mod.due}</strong>
-        </span>
-      </div>
-
-              <div className="mt-4 flex items-center justify-between">
-                <button
-                  onClick={handleToggle}
-                  className="text-sm font-medium text-contribo-black underline underline-offset-4 hover:opacity-80 transition-all duration-200"
-                  aria-expanded={open}
-                  aria-controls={`details-${mod.id}`}
-                  data-module-id={mod.id}
-                >
-                  {open ? "Hide details" : "Show details"}
-                </button>
-                
-                {/* Special Completed button for target developer */}
-                {isSpecialUser && (
-                  <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-                    <DialogTrigger asChild>
-                      <Button
-                        className="bg-contribo-black hover:bg-gray-800 text-white text-xs px-3 py-1"
-                        size="sm"
-                      >
-                        Mark Completed
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-md">
-                      <DialogHeader>
-                        <DialogTitle>Complete Module: {mod.title}</DialogTitle>
-                      </DialogHeader>
-                      
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="pr-url">Pull Request URL</Label>
-                          <Input
-                            id="pr-url"
-                            type="url"
-                            placeholder="https://github.com/owner/repo/pull/123"
-                            value={pullRequestUrl}
-                            onChange={(e) => setPullRequestUrl(e.target.value)}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="video-url">Proof of Delivery Video URL</Label>
-                          <Input
-                            id="video-url"
-                            type="url"
-                            placeholder="https://youtube.com/watch?v=..."
-                            value={videoUrl}
-                            onChange={(e) => setVideoUrl(e.target.value)}
-                          />
-                        </div>
-                        <div className="flex gap-3 pt-4">
-                          <Button
-                            onClick={handleSubmitCompletion}
-                            disabled={isSubmitting}
-                            className="flex-1 bg-contribo-black hover:bg-gray-800"
-                          >
-                            {isSubmitting ? "Submitting..." : "Submit Completion"}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            onClick={() => setModalOpen(false)}
-                            disabled={isSubmitting}
-                          >
-                            Cancel
-                          </Button>
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                )}
+      <div className="mt-4 flex items-center justify-between">
+        <button
+          onClick={handleToggle}
+          className="text-sm font-medium text-contribo-black underline underline-offset-4 hover:opacity-80 transition-all duration-200"
+          aria-expanded={open}
+          aria-controls={`details-${mod.id}`}
+          data-module-id={mod.id}
+        >
+          {open ? "Hide details" : "Show details"}
+        </button>
+        
+        {/* Special Completed button for target developer */}
+        {isSpecialUser && (
+          <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+            <DialogTrigger asChild>
+              <Button
+                className="bg-contribo-black hover:bg-gray-800 text-white text-xs px-3 py-1"
+                size="sm"
+              >
+                Mark Completed
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Complete Module: {mod.title}</DialogTitle>
+              </DialogHeader>
+              
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="pr-url">Pull Request URL</Label>
+                  <Input
+                    id="pr-url"
+                    type="url"
+                    placeholder="https://github.com/owner/repo/pull/123"
+                    value={pullRequestUrl}
+                    onChange={(e) => setPullRequestUrl(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="video-url">Proof of Delivery Video URL</Label>
+                  <Input
+                    id="video-url"
+                    type="url"
+                    placeholder="https://youtube.com/watch?v=..."
+                    value={videoUrl}
+                    onChange={(e) => setVideoUrl(e.target.value)}
+                  />
+                </div>
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    onClick={handleSubmitCompletion}
+                    disabled={isSubmitting}
+                    className="flex-1 bg-contribo-black hover:bg-gray-800"
+                  >
+                    {isSubmitting ? "Submitting..." : "Submit Completion"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setModalOpen(false)}
+                    disabled={isSubmitting}
+                  >
+                    Cancel
+                  </Button>
+                </div>
               </div>
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
 
       {/* Smoother animated details section */}
       <div 
@@ -399,22 +452,37 @@ function ModuleCard({ mod, isSpecialUser, updateModuleStatus }: { mod: Module; i
             </div>
           ) : null}
 
-          {showProof ? (
+
+          {/* Stored Completion Data Section */}
+          {completionData ? (
             <div>
               <div className="text-xs uppercase tracking-wide text-gray-500 font-medium">Proof of Delivery</div>
-              <div className="mt-2">
-                <a 
-                  href={mod.proof_of_delivery} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-sm text-contribo-black hover:text-contribo-gold transition-colors duration-200 underline underline-offset-4"
-                >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                    <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-                  </svg>
-                  Watch delivery video
-                </a>
+              <div className="mt-2 space-y-2">
+                <div>
+                  <span className="text-xs text-gray-500">Pull Request:</span>
+                  <a 
+                    href={completionData.pullRequestUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="ml-2 text-sm text-contribo-black hover:text-contribo-gold transition-colors duration-200 underline underline-offset-4"
+                  >
+                    View PR
+                  </a>
+                </div>
+                <div className="mb-2">
+                  <span className="text-xs text-gray-500">Video Proof:</span>
+                  <a 
+                    href={completionData.videoUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="ml-2 text-sm text-contribo-black hover:text-contribo-gold transition-colors duration-200 underline underline-offset-4"
+                  >
+                    Watch Video
+                  </a>
+                </div>
+                <div className="text-xs text-gray-500">
+                  Submitted: {new Date(completionData.completedAt).toLocaleDateString()}
+                </div>
               </div>
             </div>
           ) : null}
@@ -439,8 +507,8 @@ function ModuleCard({ mod, isSpecialUser, updateModuleStatus }: { mod: Module; i
 // Pure function so we can test progress logic separately
 function calcProgress(modules: Module[]): number {
   if (!Array.isArray(modules) || modules.length === 0) return 0;
-  const done = modules.filter((m) => m && m.status === "done").length;
-  return Math.round((done / modules.length) * 100);
+  const completed = modules.filter((m) => m && (m.status === "done" || m.status === "waiting_for_review")).length;
+  return Math.round((completed / modules.length) * 100);
 }
 
 interface LiveGigModulesProps {
@@ -450,10 +518,26 @@ interface LiveGigModulesProps {
 export function LiveGigModules(props: LiveGigModulesProps) {
   const { user } = useUnifiedAuth();
   const initialData = props && props.gig ? props.gig : gig;
-  const [modules, setModules] = useState(initialData.modules);
+  
+  // Load stored module completions and merge with initial data
+  const [modules, setModules] = useState(() => {
+    const storedCompletions = getModuleCompletions();
+    return initialData.modules.map(module => {
+      const completion = storedCompletions[module.id];
+      if (completion) {
+        return {
+          ...module,
+          status: completion.status,
+          proof_of_delivery: completion.videoUrl
+        };
+      }
+      return module;
+    });
+  });
+  
   const data = { ...initialData, modules };
   const progress = useMemo(() => calcProgress(modules), [modules]);
-  const doneCount = useMemo(() => modules.filter((m) => m.status === "done").length, [modules]);
+  const doneCount = useMemo(() => modules.filter((m) => m.status === "done" || m.status === "waiting_for_review").length, [modules]);
 
   // Check if current user is the target developer
   const isTargetDeveloper = () => {
@@ -494,7 +578,7 @@ export function LiveGigModules(props: LiveGigModulesProps) {
         <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-600">
           <span>
             Org:
-            <a className="ml-1 underline underline-offset-4 hover:opacity-80 text-contribo-black" href={data.org.url}>
+            <a className="ml-1 underline underline-offset-4 hover:opacity-80 text-contribo-black" href={data.org.url} target="_blank" rel="noopener noreferrer">
               {data.org.name}
             </a>
           </span>
@@ -523,7 +607,7 @@ export function LiveGigModules(props: LiveGigModulesProps) {
             <ProgressBar value={progress} />
             <div className="mt-4 text-xs text-gray-500 space-x-4">
               {data.links?.map((l) => (
-                <a key={l.label} href={l.href} className="underline underline-offset-4 hover:opacity-80 text-contribo-black">{l.label}</a>
+                <a key={l.label} href={l.href} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4 hover:opacity-80 text-contribo-black">{l.label}</a>
               ))}
             </div>
           </div>
@@ -540,7 +624,7 @@ export function LiveGigModules(props: LiveGigModulesProps) {
 
       {/* Footer note */}
       <div className="mt-8 text-center text-xs text-gray-500">
-        Tip: Mark modules as <span className="font-medium text-contribo-gold">Done</span> in the data object to auto-update progress.
+        Tip: Mark modules as <span className="font-medium text-contribo-gold">completed</span> in the data object to auto-update progress.
       </div>
     </div>
   );
@@ -565,6 +649,10 @@ function runSelfTests() {
     const mods = gig.modules.map((m, i) => ({ ...m, status: i < 2 ? "done" : "not_started" }));
     assert(calcProgress(mods) === 50, "calcProgress should be 50 when 2 of 4 are done");
 
+    // Test 3.5: progress calc includes waiting_for_review status
+    const modsWithReview = gig.modules.map((m, i) => ({ ...m, status: i < 2 ? "waiting_for_review" : "not_started" }));
+    assert(calcProgress(modsWithReview) === 50, "calcProgress should be 50 when 2 of 4 are waiting for review");
+
     // Test 4: statusClasses returns a string
     assert(typeof statusClasses("done") === "string", "statusClasses should return a string");
 
@@ -576,6 +664,10 @@ function runSelfTests() {
     // Test 6: calcProgress clamps and handles garbage
     const bad = [{ status: "nope" }, { status: "done" }, null, {}];
     assert(calcProgress(bad as any) === 25, "calcProgress should count only 'done' statuses");
+
+    // Test 6.5: calcProgress counts both done and waiting_for_review
+    const mixed = [{ status: "done" }, { status: "waiting_for_review" }, { status: "not_started" }, { status: "in_progress" }];
+    assert(calcProgress(mixed as any) === 50, "calcProgress should count both 'done' and 'waiting_for_review' statuses");
 
     // Test 7: ProgressBar input guard does not throw
     assert(Number.isFinite(calcProgress([])) && calcProgress([]) === 0, "ProgressBar safety depends on calcProgress");
@@ -589,6 +681,10 @@ function runSelfTests() {
     // Test 10: 100 percent when all modules are done
     const allDone = gig.modules.map((m) => ({ ...m, status: "done" }));
     assert(calcProgress(allDone) === 100, "calcProgress should be 100 when all modules are done");
+
+    // Test 10.5: 100 percent when all modules are waiting for review
+    const allReview = gig.modules.map((m) => ({ ...m, status: "waiting_for_review" }));
+    assert(calcProgress(allReview) === 100, "calcProgress should be 100 when all modules are waiting for review");
 
     console.info("LiveGigModules self-tests passed.");
   } catch (e) {
