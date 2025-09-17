@@ -12,13 +12,21 @@ interface ApplicationSuccessModalProps {
   onClose: () => void;
   opportunityTitle?: string;
   companyName?: string;
+  customTitle?: string;
+  customMessage?: string;
+  customBadgeText?: string;
+  customShareText?: string;
 }
 
 const ApplicationSuccessModal: React.FC<ApplicationSuccessModalProps> = ({
   isOpen,
   onClose,
   opportunityTitle,
-  companyName
+  companyName,
+  customTitle,
+  customMessage,
+  customBadgeText,
+  customShareText
 }) => {
   const [showConfetti, setShowConfetti] = useState(false);
   const [windowDimensions, setWindowDimensions] = useState({
@@ -51,7 +59,7 @@ const ApplicationSuccessModal: React.FC<ApplicationSuccessModalProps> = ({
   }, []);
 
   const handleShare = async () => {
-    const shareText = `I just applied for ${opportunityTitle} at ${companyName}! 🚀`;
+    const shareText = customShareText || `I just applied for ${opportunityTitle} at ${companyName}! 🚀`;
     const shareUrl = 'https://contribo.xyz/opportunities';
 
     if (navigator.share) {
@@ -116,21 +124,21 @@ const ApplicationSuccessModal: React.FC<ApplicationSuccessModalProps> = ({
               <CheckCircle className="h-10 w-10 text-green-600" />
             </div>
             <DialogTitle className="text-2xl font-bold text-gray-900 text-center">
-              Application Submitted!
+              {customTitle || "Application Submitted!"}
             </DialogTitle>
           </DialogHeader>
 
           <div className="text-center space-y-6">
             <div className="space-y-4">
               <p className="text-gray-600 text-sm">
-                We'll notify you about the status of your application shortly.
+                {customMessage || "We'll notify you about the status of your application shortly."}
               </p>
               
               {opportunityTitle && companyName && (
                 <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                   <Badge variant="outline" className="text-xs">
                     <Sparkles className="w-3 h-3 mr-1" />
-                    Applied Successfully
+                    {customBadgeText || "Applied Successfully"}
                   </Badge>
                   <div className="pt-2">
                     <p className="text-sm font-medium text-gray-900">
