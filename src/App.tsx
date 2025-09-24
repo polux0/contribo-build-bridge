@@ -12,6 +12,11 @@ import './lib/posthog-script'; // Initialize PostHog with UTM tracking
 import Index from "./pages/Index";
 import Opportunities from "./pages/Opportunities";
 import Hiring from "./pages/Hiring";
+import DescribeProject from "./pages/DescribeProject";
+import InputsContext from "./pages/InputsContext";
+import AcceptanceCriteria from "./pages/AcceptanceCriteria";
+import RewardTimeline from "./pages/RewardTimeline";
+import PreviewPublish from "./pages/PreviewPublish";
 import Apply from "./pages/Apply";
 import LiveGig from "./pages/LiveGig";
 import NotFound from "./pages/NotFound";
@@ -32,6 +37,11 @@ const App = () => (
                 <Route path="/" element={<Index />} />
                 <Route path="/opportunities" element={<Opportunities />} />
                 <Route path="/hiring" element={<Hiring />} />
+                <Route path="/hiring/describe-project" element={<DescribeProject />} />
+                <Route path="/hiring/inputs-context" element={<InputsContext />} />
+                <Route path="/hiring/acceptance-criteria" element={<AcceptanceCriteria />} />
+                <Route path="/hiring/reward-timeline" element={<RewardTimeline />} />
+                <Route path="/hiring/preview-publish" element={<PreviewPublish />} />
                 <Route path="/apply" element={<Apply />} />
                 <Route path="/live-gig" element={<LiveGig />} />
                 <Route path="*" element={<NotFound />} />

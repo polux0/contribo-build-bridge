@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
+import { useNavigate } from 'react-router-dom';
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
@@ -18,6 +19,7 @@ const Hiring = () => {
   const { user, loading, updateUserEmail } = useUnifiedAuth();
   const { login } = usePrivy();
   const { uploadJobDescription, uploading } = useJobUpload();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [showEmailInput, setShowEmailInput] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -242,7 +244,7 @@ const Hiring = () => {
             </Card>
 
             {/* Upload Button */}
-            <div className="flex justify-center">
+            <div className="flex justify-center mb-6">
               <Button 
                 onClick={handleJobDescriptionUpload}
                 className="bg-contribo-black hover:bg-gray-800"
@@ -258,6 +260,31 @@ const Hiring = () => {
                   "Upload Job Description"
                 )}
               </Button>
+            </div>
+
+            {/* Describe your project option */}
+            <div className="text-center">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-white px-2 text-muted-foreground">or</span>
+                </div>
+              </div>
+              
+              <div className="mt-6">
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate('/hiring/describe-project')}
+                  className="w-full max-w-sm"
+                >
+                  Describe your project
+                </Button>
+                <p className="text-xs text-gray-500 mt-2">
+                  Create a structured project description with AI assistance
+                </p>
+              </div>
             </div>
 
             <div className="text-xs text-contribo-gray-submuted mt-6 text-center">
