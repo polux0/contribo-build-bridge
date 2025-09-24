@@ -141,7 +141,7 @@ const DescribeProject = () => {
                     onClick={handleNext}
                     className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold px-12 py-2 h-11"
                   >
-                    Next →
+                    Next
                   </Button>
                 </div>
               </div>

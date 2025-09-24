@@ -135,7 +135,7 @@ export function generateAISuggestion(description: string): AISuggestion {
   
   return {
     title: template.suggestions.title,
-    description: `Implement ${description.toLowerCase().trim()}; includes testing and documentation.`,
+    description: `Implement ${description.toLowerCase().trim()}.`, // Clean description without extra text
     price: `$${adjustedMin.toLocaleString()}–$${adjustedMax.toLocaleString()}`,
     timeline: template.suggestions.timeline,
     deliverables: template.suggestions.deliverables

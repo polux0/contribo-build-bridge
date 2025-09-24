@@ -131,7 +131,7 @@ const PreviewPublish = () => {
                   </div>
 
                   {/* Navigation */}
-                  <div className="flex justify-between pt-6">
+                  <div className="flex justify-between pt-24">
                     <Button
                       variant="secondary"
                       onClick={handleEditPrevious}
@@ -216,6 +216,7 @@ const PreviewPublish = () => {
         customMessage="Your gig is now live and developers can start applying. We'll notify you when someone applies."
         customBadgeText="Published Successfully"
         customShareText={`I just published a new gig: ${gigData.title}! Looking for talented developers. `}
+        customButtonText="Invite People to Contribute"
       />
     </div>
   );

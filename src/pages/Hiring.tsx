@@ -243,6 +243,10 @@ const Hiring = () => {
               </CardContent>
             </Card>
 
+            <div className="text-xs text-contribo-gray-submuted mb-6 text-center">
+              Upload your job or gig description and we'll find the perfect candidates for you.
+            </div>
+
             {/* Upload Button */}
             <div className="flex justify-center mb-6">
               <Button 
@@ -275,9 +279,8 @@ const Hiring = () => {
               
               <div className="mt-6">
                 <Button 
-                  variant="outline" 
                   onClick={() => navigate('/hiring/describe-project')}
-                  className="w-full max-w-sm"
+                  className="w-full max-w-sm bg-contribo-black hover:bg-gray-800"
                 >
                   Describe your project
                 </Button>
@@ -285,10 +288,6 @@ const Hiring = () => {
                   Create a structured project description with AI assistance
                 </p>
               </div>
-            </div>
-
-            <div className="text-xs text-contribo-gray-submuted mt-6 text-center">
-              Upload your job or gig description and we'll find the perfect candidates for you.
             </div>
           </div>
         </main>

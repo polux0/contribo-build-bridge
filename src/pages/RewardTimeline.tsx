@@ -24,7 +24,11 @@ const RewardTimeline = () => {
   const [currency, setCurrency] = useState("USDC");
   const [complexity, setComplexity] = useState("medium");
   const [duration, setDuration] = useState("10");
-  const [dueDate, setDueDate] = useState("2024-10-05");
+  
+  // Set default date to today
+  const today = new Date();
+  const defaultDate = today.toISOString().split('T')[0];
+  const [dueDate, setDueDate] = useState(defaultDate);
 
   // Get data from previous steps
   const gigData = location.state || {
@@ -49,6 +53,30 @@ const RewardTimeline = () => {
   const formatDueDate = () => {
     const date = new Date(dueDate);
     return `Due: ${date.toLocaleDateString('en-US', { month: 'short', day: '2-digit' })}`;
+  };
+
+  // Simplified synchronization functions
+  const handleDurationChange = (newDuration: string) => {
+    const durationNum = parseInt(newDuration);
+    if (isNaN(durationNum) || durationNum < 1) return;
+    
+    setDuration(newDuration);
+    // Calculate new due date based on duration from today
+    const today = new Date();
+    const newDueDate = new Date(today.getTime() + durationNum * 24 * 60 * 60 * 1000);
+    setDueDate(newDueDate.toISOString().split('T')[0]);
+  };
+
+  const handleDateChange = (newDate: string) => {
+    if (!newDate) return;
+    
+    setDueDate(newDate);
+    // Calculate duration from today to the selected date
+    const today = new Date();
+    const selectedDate = new Date(newDate);
+    const diffTime = selectedDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    setDuration(Math.max(1, diffDays).toString());
   };
 
   const complexityOptions = [
@@ -171,9 +199,10 @@ const RewardTimeline = () => {
                         <Input
                           type="number"
                           value={duration}
-                          onChange={(e) => setDuration(e.target.value)}
+                          onChange={(e) => handleDurationChange(e.target.value)}
                           className="w-56 text-base bg-muted border-border h-11 pr-16"
                           placeholder="0"
+                          min="1"
                         />
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-base text-muted-foreground">days</span>
                       </div>
@@ -181,8 +210,9 @@ const RewardTimeline = () => {
                         <Input
                           type="date"
                           value={dueDate}
-                          onChange={(e) => setDueDate(e.target.value)}
+                          onChange={(e) => handleDateChange(e.target.value)}
                           className="w-56 text-base bg-muted border-border h-11"
+                          min={defaultDate}
                         />
                       </div>
                     </div>
@@ -211,7 +241,7 @@ const RewardTimeline = () => {
                 </div>
 
                 {/* Navigation */}
-                <div className="flex justify-between pt-6">
+                <div className="flex justify-between pt-16">
                   <Button
                     variant="secondary"
                     onClick={handleBack}
@@ -223,7 +253,7 @@ const RewardTimeline = () => {
                     onClick={handleNext}
                     className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold px-12 py-2 h-11"
                   >
-                    Next →
+                    Next
                   </Button>
                 </div>
               </div>

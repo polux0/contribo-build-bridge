@@ -90,7 +90,7 @@ const AcceptanceCriteria = () => {
                 <div className="space-y-2">
                   <h2 className="text-lg font-bold text-card-foreground">Step 3 · Define acceptance criteria</h2>
                   <p className="text-sm text-muted-foreground">
-                    Be specific — what must be true for approval?
+                    Be specific - what must be true for approval?
                   </p>
                 </div>
 
@@ -174,7 +174,7 @@ const AcceptanceCriteria = () => {
                     onClick={handleNext}
                     className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold px-12 py-2 h-11"
                   >
-                    Next →
+                    Next
                   </Button>
                 </div>
               </div>
