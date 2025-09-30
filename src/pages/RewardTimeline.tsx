@@ -31,7 +31,7 @@ const RewardTimeline = () => {
   const [dueDate, setDueDate] = useState(defaultDate);
 
   // Get data from previous steps
-  const gigData = location.state || {
+  const projectData = location.state || {
     title: "Wallet Login + SIWE Protection",
     description: "Implement Web3 wallet auth with SIWE and route guards; include tests and docs.",
     acceptanceCriteria: [
@@ -101,13 +101,13 @@ const RewardTimeline = () => {
   };
 
   const handleBack = () => {
-    navigate("/hiring/acceptance-criteria", { state: gigData });
+    navigate("/hiring/acceptance-criteria", { state: projectData });
   };
 
   const handleNext = () => {
     navigate("/hiring/preview-publish", { 
       state: { 
-        ...gigData,
+        ...projectData,
         rewardAmount,
         currency,
         complexity,
@@ -125,7 +125,7 @@ const RewardTimeline = () => {
         <div className="max-w-7xl mx-auto space-y-10">
           {/* Header */}
           <Card className="p-6 shadow-card border-border bg-card">
-            <h1 className="text-2xl font-bold text-card-foreground">Create Milestone Gig</h1>
+            <h1 className="text-2xl font-bold text-card-foreground">Create Milestone Project</h1>
           </Card>
 
           {/* Progress Stepper */}
@@ -138,8 +138,8 @@ const RewardTimeline = () => {
             <Card className="p-8 shadow-card border-border bg-card">
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <h2 className="text-lg font-bold text-card-foreground">Step 4 · Set reward & timeline</h2>
-                  <p className="text-sm text-muted-foreground">
+                  <h2 className="text-xl font-semibold text-gray-900">Step 4 · Set reward & timeline</h2>
+                  <p className="text-sm text-gray-600">
                     Fixed price = faster approvals.
                   </p>
                 </div>
@@ -241,17 +241,17 @@ const RewardTimeline = () => {
                 </div>
 
                 {/* Navigation */}
-                <div className="flex justify-between pt-16">
+                <div className="flex justify-between pt-6">
                   <Button
-                    variant="secondary"
+                    variant="outline"
                     onClick={handleBack}
-                    className="px-8 py-2 h-11 font-bold"
+                    className="px-8 py-2 h-11 font-medium"
                   >
                     Back
                   </Button>
                   <Button
                     onClick={handleNext}
-                    className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold px-12 py-2 h-11"
+                    className="bg-contribo-black hover:bg-gray-800 text-white font-medium px-12 py-2 h-11"
                   >
                     Next
                   </Button>

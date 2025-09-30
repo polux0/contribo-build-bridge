@@ -27,7 +27,7 @@ const InputsContext = () => {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
 
   // Get data from previous step
-  const gigData = location.state || {
+  const projectData = location.state || {
     title: "Wallet Login + SIWE Protection",
     description: "Implement Web3 wallet auth with SIWE and route guards; include tests and docs.",
     price: "$2,000–$3,200",
@@ -62,13 +62,13 @@ const InputsContext = () => {
   };
 
   const handleBack = () => {
-    navigate("/hiring/describe-project", { state: gigData });
+    navigate("/hiring/describe-project", { state: projectData });
   };
 
   const handleNext = () => {
     navigate("/hiring/acceptance-criteria", { 
       state: { 
-        ...gigData,
+        ...projectData,
         repoUrl,
         designLink,
         dependencies,
@@ -85,7 +85,7 @@ const InputsContext = () => {
         <div className="max-w-7xl mx-auto space-y-10">
           {/* Header */}
           <Card className="p-6 shadow-card border-border bg-card">
-            <h1 className="text-2xl font-bold text-card-foreground">Create Milestone Gig</h1>
+            <h1 className="text-2xl font-bold text-card-foreground">Create Milestone Project</h1>
           </Card>
 
           {/* Progress Stepper */}
@@ -98,8 +98,8 @@ const InputsContext = () => {
             <Card className="p-8 shadow-card border-border bg-card">
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <h2 className="text-lg font-bold text-card-foreground">Step 2 · Provide inputs & context</h2>
-                  <p className="text-sm text-muted-foreground">
+                  <h2 className="text-xl font-semibold text-gray-900">Step 2 · Provide inputs & context</h2>
+                  <p className="text-sm text-gray-600">
                     Links and files help developers start fast.
                   </p>
                 </div>
@@ -197,15 +197,15 @@ const InputsContext = () => {
                 {/* Navigation */}
                 <div className="flex justify-between pt-6">
                   <Button
-                    variant="secondary"
+                    variant="outline"
                     onClick={handleBack}
-                    className="px-8 py-2 h-11 font-bold"
+                    className="px-8 py-2 h-11 font-medium"
                   >
                     Back
                   </Button>
                   <Button
                     onClick={handleNext}
-                    className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold px-12 py-2 h-11"
+                    className="bg-contribo-black hover:bg-gray-800 text-white font-medium px-12 py-2 h-11"
                   >
                     Next
                   </Button>

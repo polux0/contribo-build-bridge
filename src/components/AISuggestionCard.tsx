@@ -1,5 +1,4 @@
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 
 interface AISuggestion {
   title: string;
@@ -32,15 +31,6 @@ const AISuggestionCard = ({ suggestion, onInsert }: AISuggestionCardProps) => {
               <span className="text-xs text-muted-foreground">{deliverable}</span>
             </div>
           ))}
-        </div>
-        
-        <div className="flex justify-end">
-          <Button 
-            onClick={onInsert}
-            className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold px-6 py-2 h-9 text-sm"
-          >
-            Use as Template
-          </Button>
         </div>
       </div>
     </Card>

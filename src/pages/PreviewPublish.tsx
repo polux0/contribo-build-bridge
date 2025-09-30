@@ -25,7 +25,7 @@ const PreviewPublish = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Get all data from previous steps
-  const gigData = location.state || {
+  const projectData = location.state || {
     title: "Wallet Login + SIWE Protection",
     description: "Implement Web3 wallet auth with SIWE and route guards; include tests and docs.",
     acceptanceCriteria: [
@@ -40,22 +40,22 @@ const PreviewPublish = () => {
   };
 
   const formatPrice = () => {
-    return `$${gigData.rewardAmount}`;
+    return `$${projectData.rewardAmount}`;
   };
 
   const formatTimeline = () => {
-    return `${gigData.duration} days`;
+    return `${projectData.duration} days`;
   };
 
   const handleEditPrevious = () => {
-    navigate("/hiring/reward-timeline", { state: gigData });
+    navigate("/hiring/reward-timeline", { state: projectData });
   };
 
   const handlePublish = () => {
     if (!isConfirmed) return;
     
     // TODO: Implement actual publish logic here
-    console.log("Publishing gig:", gigData);
+    console.log("Publishing project:", projectData);
     
     // Show success modal instead of alert
     setShowSuccessModal(true);
@@ -81,7 +81,7 @@ const PreviewPublish = () => {
         <div className="max-w-7xl mx-auto space-y-10">
           {/* Header */}
           <Card className="p-6 shadow-card border-border bg-card">
-            <h1 className="text-2xl font-bold text-card-foreground">Create Milestone Gig</h1>
+            <h1 className="text-2xl font-bold text-card-foreground">Create Milestone Project</h1>
           </Card>
 
           {/* Progress Stepper */}
@@ -133,18 +133,18 @@ const PreviewPublish = () => {
                   {/* Navigation */}
                   <div className="flex justify-between pt-24">
                     <Button
-                      variant="secondary"
+                      variant="outline"
                       onClick={handleEditPrevious}
-                      className="px-8 py-2 h-11 font-bold"
+                      className="px-8 py-2 h-11 font-medium"
                     >
                       Edit previous
                     </Button>
                     <Button
                       onClick={handlePublish}
                       disabled={!isConfirmed}
-                      className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold px-12 py-2 h-11 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="bg-contribo-black hover:bg-gray-800 text-white font-medium px-12 py-2 h-11 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Publish Gig
+                      Publish Project
                     </Button>
                   </div>
                 </div>
@@ -166,23 +166,23 @@ const PreviewPublish = () => {
                     
                     <div className="pt-2 space-y-4">
                       <h3 className="text-base font-bold text-card-foreground">
-                        {gigData.title}
+                        {projectData.title}
                       </h3>
                       <p className="text-xs font-bold text-primary">
                         {formatPrice()} · {formatTimeline()}
                       </p>
                       <hr className="border-border" />
                       <p className="text-xs text-muted-foreground leading-relaxed">
-                        {gigData.description}
+                        {projectData.description}
                       </p>
                       
-                      {gigData.acceptanceCriteria && gigData.acceptanceCriteria.length > 0 && (
+                      {projectData.acceptanceCriteria && projectData.acceptanceCriteria.length > 0 && (
                         <>
                           <hr className="border-border" />
                           <div>
                             <p className="text-xs font-bold text-card-foreground mb-2">Acceptance</p>
                             <div className="space-y-2">
-                              {gigData.acceptanceCriteria.map((criterion, index) => (
+                              {projectData.acceptanceCriteria.map((criterion, index) => (
                                 <div key={index} className="flex items-start gap-2">
                                   <div className="w-1.5 h-1.5 bg-primary rounded-full flex-shrink-0 mt-1.5"></div>
                                   <span className="text-xs text-muted-foreground leading-relaxed">{criterion}</span>
@@ -190,8 +190,8 @@ const PreviewPublish = () => {
                               ))}
                             </div>
                           </div>
-                          <Button className="w-full bg-primary hover:bg-primary-hover text-primary-foreground font-bold text-sm h-11">
-                            Apply for Gig
+                          <Button className="w-full bg-primary hover:bg-primary-hover text-primary-foreground font-medium text-sm h-11">
+                            Apply for Project
                           </Button>
                         </>
                       )}
@@ -210,12 +210,12 @@ const PreviewPublish = () => {
       <ApplicationSuccessModal
         isOpen={showSuccessModal}
         onClose={handleCloseSuccessModal}
-        opportunityTitle={gigData.title}
-        companyName="Gig Published"
-        customTitle="Gig Published Successfully!"
-        customMessage="Your gig is now live and developers can start applying. We'll notify you when someone applies."
+        opportunityTitle={projectData.title}
+        companyName="Project Published"
+        customTitle="Project Published Successfully!"
+        customMessage="Your project is now live and developers can start applying. We'll notify you when someone applies."
         customBadgeText="Published Successfully"
-        customShareText={`I just published a new gig: ${gigData.title}! Looking for talented developers. `}
+        customShareText={`I just published a new project: ${projectData.title}! Looking for talented developers. `}
         customButtonText="Invite People to Contribute"
       />
     </div>

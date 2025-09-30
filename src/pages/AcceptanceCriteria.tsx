@@ -30,7 +30,7 @@ const AcceptanceCriteria = () => {
   const [isAdding, setIsAdding] = useState(false);
 
   // Get data from previous steps
-  const gigData = location.state || {
+  const projectData = location.state || {
     title: "Wallet Login + SIWE Protection",
     price: "$2,000–$3,200",
     timeline: "1–2 weeks",
@@ -55,13 +55,13 @@ const AcceptanceCriteria = () => {
   };
 
   const handleBack = () => {
-    navigate("/hiring/inputs-context", { state: gigData });
+    navigate("/hiring/inputs-context", { state: projectData });
   };
 
   const handleNext = () => {
     navigate("/hiring/reward-timeline", { 
       state: { 
-        ...gigData, 
+        ...projectData, 
         acceptanceCriteria: criteria 
       } 
     });
@@ -75,7 +75,7 @@ const AcceptanceCriteria = () => {
         <div className="max-w-7xl mx-auto space-y-10">
           {/* Header */}
           <Card className="p-6 shadow-card border-border bg-card">
-            <h1 className="text-2xl font-bold text-card-foreground">Create Milestone Gig</h1>
+            <h1 className="text-2xl font-bold text-card-foreground">Create Milestone Project</h1>
           </Card>
 
           {/* Progress Stepper */}
@@ -88,8 +88,8 @@ const AcceptanceCriteria = () => {
             <Card className="p-8 shadow-card border-border bg-card">
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <h2 className="text-lg font-bold text-card-foreground">Step 3 · Define acceptance criteria</h2>
-                  <p className="text-sm text-muted-foreground">
+                  <h2 className="text-xl font-semibold text-gray-900">Step 3 · Define acceptance criteria</h2>
+                  <p className="text-sm text-gray-600">
                     Be specific - what must be true for approval?
                   </p>
                 </div>
@@ -98,13 +98,13 @@ const AcceptanceCriteria = () => {
                 <div className="space-y-3">
                   {criteria.map((criterion, index) => (
                     <div key={index} className="group relative">
-                      <div className="flex items-center gap-3 p-4 bg-muted border border-border rounded-lg">
+                      <div className="flex items-center gap-3 p-3 bg-muted border border-border rounded-lg">
                         <span className="text-base text-card-foreground flex-1">{criterion}</span>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleRemoveCriterion(index)}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-4 p-0 text-muted-foreground hover:text-destructive"
                         >
                           <X className="h-4 w-4" />
                         </Button>
@@ -114,12 +114,12 @@ const AcceptanceCriteria = () => {
                   
                   {/* Add new criterion */}
                   {isAdding ? (
-                    <div className="flex items-center gap-2 p-4 bg-muted border border-border rounded-lg">
+                    <div className="flex items-center gap-2 p-3 bg-muted border border-border rounded-lg">
                       <Input
                         value={newCriterion}
                         onChange={(e) => setNewCriterion(e.target.value)}
                         placeholder="Enter acceptance criterion..."
-                        className="border-0 bg-transparent p-0 text-base focus-visible:ring-0"
+                        className="border-0 bg-transparent p-0 text-base focus-visible:ring-0 focus-visible:outline-none focus:ring-0 focus:outline-none focus:border-0 focus:shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-0"
                         onKeyDown={(e) => {
                           if (e.key === "Enter") handleAddCriterion();
                           if (e.key === "Escape") {
@@ -132,7 +132,7 @@ const AcceptanceCriteria = () => {
                       <Button
                         onClick={handleAddCriterion}
                         size="sm"
-                        className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold"
+                        className="bg-contribo-black hover:bg-gray-800 text-white font-medium"
                       >
                         Add
                       </Button>
@@ -164,15 +164,15 @@ const AcceptanceCriteria = () => {
                 {/* Navigation */}
                 <div className="flex justify-between pt-6">
                   <Button
-                    variant="secondary"
+                    variant="outline"
                     onClick={handleBack}
-                    className="px-8 py-2 h-11 font-bold"
+                    className="px-8 py-2 h-11 font-medium"
                   >
                     Back
                   </Button>
                   <Button
                     onClick={handleNext}
-                    className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold px-12 py-2 h-11"
+                    className="bg-contribo-black hover:bg-gray-800 text-white font-medium px-12 py-2 h-11"
                   >
                     Next
                   </Button>
