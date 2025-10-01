@@ -59,6 +59,12 @@ const AcceptanceCriteria = () => {
   };
 
   const handleNext = () => {
+    // Validate that at least one acceptance criterion is provided
+    if (criteria.length === 0) {
+      alert("Please add at least one acceptance criterion before proceeding.");
+      return;
+    }
+    
     navigate("/hiring/reward-timeline", { 
       state: { 
         ...projectData, 
@@ -160,6 +166,15 @@ const AcceptanceCriteria = () => {
                     <span className="ml-2 text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">Coming Soon</span>
                   </Button>
                 </div>
+
+                {/* Validation Message */}
+                {criteria.length === 0 && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                    <p className="text-sm text-amber-800">
+                      <strong>Required:</strong> Please add at least one acceptance criterion to define what success looks like for this project.
+                    </p>
+                  </div>
+                )}
 
                 {/* Navigation */}
                 <div className="flex justify-between pt-6">

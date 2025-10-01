@@ -53,7 +53,8 @@ const DescribeProject = () => {
         title: aiSuggestion.title,
         price: aiSuggestion.price,
         timeline: aiSuggestion.timeline,
-        description: aiSuggestion.description
+        description: aiSuggestion.description,
+        deliverables: aiSuggestion.deliverables
       } 
     });
   };
@@ -100,9 +101,19 @@ const DescribeProject = () => {
                     <Textarea
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
-                      className="min-h-14 text-base bg-muted border-border resize-none"
+                      className={`min-h-14 text-base bg-muted border-border resize-none ${
+                        !description.trim() ? 'border-red-300' : ''
+                      }`}
                       placeholder="Describe what you need..."
                     />
+                    <p className="text-xs text-muted-foreground">
+                      Be specific about what you want to build. Include technical requirements, features, and any constraints. The more detail you provide, the better we can match you with the right developers.
+                    </p>
+                    {!description.trim() && (
+                      <p className="text-xs text-red-600">
+                        Please describe what you need before proceeding.
+                      </p>
+                    )}
                   </div>
 
                   {/* AI Suggestion */}
@@ -139,7 +150,8 @@ const DescribeProject = () => {
                   </Button>
                   <Button
                     onClick={handleNext}
-                    className="bg-contribo-black hover:bg-gray-800 text-white font-medium px-12 py-2 h-11"
+                    disabled={!description.trim()}
+                    className="bg-contribo-black hover:bg-gray-800 text-white font-medium px-12 py-2 h-11 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Next
                   </Button>

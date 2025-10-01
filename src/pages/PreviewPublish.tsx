@@ -28,6 +28,12 @@ const PreviewPublish = () => {
   const projectData = location.state || {
     title: "Wallet Login + SIWE Protection",
     description: "Implement Web3 wallet auth with SIWE and route guards; include tests and docs.",
+    deliverables: [
+      "User registration and login flow",
+      "Session management and security",
+      "Route guards implementation",
+      "Tests and documentation"
+    ],
     acceptanceCriteria: [
       "Route guards enforce auth on protected pages",
       "SIWE session persists & refreshes correctly", 
@@ -176,6 +182,23 @@ const PreviewPublish = () => {
                         {projectData.description}
                       </p>
                       
+                      {projectData.deliverables && projectData.deliverables.length > 0 && (
+                        <>
+                          <hr className="border-border" />
+                          <div>
+                            <p className="text-xs font-bold text-card-foreground mb-2">Milestones</p>
+                            <div className="space-y-2">
+                              {projectData.deliverables.map((deliverable, index) => (
+                                <div key={index} className="flex items-start gap-2">
+                                  <div className="w-1.5 h-1.5 bg-primary rounded-full flex-shrink-0 mt-1.5"></div>
+                                  <span className="text-xs text-muted-foreground leading-relaxed">{deliverable}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      
                       {projectData.acceptanceCriteria && projectData.acceptanceCriteria.length > 0 && (
                         <>
                           <hr className="border-border" />
@@ -213,10 +236,9 @@ const PreviewPublish = () => {
         opportunityTitle={projectData.title}
         companyName="Project Published"
         customTitle="Project Published Successfully!"
-        customMessage="Your project is now live and developers can start applying. We'll notify you when someone applies."
+        customMessage="Your project is now live and developers can start applying. We'll notify you when someone applies. As soon as a developer expresses intent to contribute to a specific module, we'll ask you for a deposit."
         customBadgeText="Published Successfully"
         customShareText={`I just published a new project: ${projectData.title}! Looking for talented developers. `}
-        customButtonText="Invite People to Contribute"
       />
     </div>
   );

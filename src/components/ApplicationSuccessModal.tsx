@@ -105,6 +105,7 @@ const ApplicationSuccessModal: React.FC<ApplicationSuccessModalProps> = ({
     window.open(farcasterUrl, '_blank');
   };
 
+
   return (
     <>
       {showConfetti && (

@@ -105,6 +105,17 @@ const RewardTimeline = () => {
   };
 
   const handleNext = () => {
+    // Validate required fields
+    if (!rewardAmount.trim() || parseFloat(rewardAmount) <= 0) {
+      alert("Please enter a valid reward amount.");
+      return;
+    }
+    
+    if (!duration.trim() || parseInt(duration) <= 0) {
+      alert("Please enter a valid duration in days.");
+      return;
+    }
+    
     navigate("/hiring/preview-publish", { 
       state: { 
         ...projectData,
@@ -155,7 +166,9 @@ const RewardTimeline = () => {
                           type="number"
                           value={rewardAmount}
                           onChange={(e) => setRewardAmount(e.target.value)}
-                          className="pl-8 text-base bg-muted border-border h-11"
+                          className={`pl-8 text-base bg-muted border-border h-11 ${
+                            (!rewardAmount.trim() || parseFloat(rewardAmount) <= 0) ? 'border-red-300' : ''
+                          }`}
                           placeholder="0"
                         />
                       </div>
@@ -200,7 +213,9 @@ const RewardTimeline = () => {
                           type="number"
                           value={duration}
                           onChange={(e) => handleDurationChange(e.target.value)}
-                          className="w-56 text-base bg-muted border-border h-11 pr-16"
+                          className={`w-56 text-base bg-muted border-border h-11 pr-16 ${
+                            (!duration.trim() || parseInt(duration) <= 0) ? 'border-red-300' : ''
+                          }`}
                           placeholder="0"
                           min="1"
                         />
