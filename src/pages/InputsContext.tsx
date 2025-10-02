@@ -72,7 +72,8 @@ const InputsContext = () => {
         repoUrl,
         designLink,
         dependencies,
-        files: uploadedFiles
+        files: uploadedFiles,
+        milestoneList: projectData.milestoneList || []
       } 
     });
   };

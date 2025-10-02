@@ -23,12 +23,18 @@ const DescribeProject = () => {
   const [description, setDescription] = useState("Add wallet login and protect routes with SIWE");
   const [milestones, setMilestones] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [milestoneList, setMilestoneList] = useState<any[]>([]);
   
   useEffect(() => {
     // Initialize with data from previous step
     if (location.state?.description) {
       setDescription(location.state.description);
-      generateMilestones(location.state.description);
+      // If we have cached milestones, use them instead of regenerating
+      if (location.state.milestones) {
+        setMilestones(location.state.milestones);
+      } else {
+        generateMilestones(location.state.description);
+      }
     } else if (location.state?.template) {
       const templateDesc = `Implement ${location.state.template.title}`;
       setDescription(templateDesc);
@@ -69,11 +75,16 @@ const DescribeProject = () => {
     navigate("/hiring");
   };
 
+  const handleMilestonesChange = (milestones: any[]) => {
+    setMilestoneList(milestones);
+  };
+
   const handleNext = () => {
     navigate("/hiring/inputs-context", { 
       state: { 
         description: description,
-        milestones: milestones
+        milestones: milestones,
+        milestoneList: milestoneList
       } 
     });
   };
@@ -140,6 +151,7 @@ const DescribeProject = () => {
                     milestones={milestones}
                     isGenerating={isGenerating}
                     onInsert={handleInsertSuggestion}
+                    onMilestonesChange={handleMilestonesChange}
                   />
 
                 </div>

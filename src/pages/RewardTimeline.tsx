@@ -1,13 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProgressStepper from "@/components/ProgressStepper";
 import MilestoneCard from "@/components/MilestoneCard";
+import { Plus, DollarSign, Calendar } from "lucide-react";
 
 const steps = [
   { number: 1, label: "Describe", sublabel: "Need" },
@@ -17,67 +19,205 @@ const steps = [
   { number: 4, label: "Preview &", sublabel: "Publish" }
 ];
 
+interface MilestoneWithReward {
+  id: string;
+  title: string;
+  outcome: string;
+  proof: string;
+  timeline: string;
+  payout: string;
+  rewardAmount: string;
+  currency: string;
+  dueDate: string;
+}
+
 const RewardTimeline = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  const [rewardAmount, setRewardAmount] = useState("2800");
+  const [milestones, setMilestones] = useState<MilestoneWithReward[]>([]);
   const [currency, setCurrency] = useState("USDC");
   const [complexity, setComplexity] = useState("medium");
-  const [duration, setDuration] = useState("10");
   
   // Set default date to today
   const today = new Date();
   const defaultDate = today.toISOString().split('T')[0];
-  const [dueDate, setDueDate] = useState(defaultDate);
 
   // Get data from previous steps
   const projectData = location.state || {
     title: "Wallet Login + SIWE Protection",
     description: "Implement Web3 wallet auth with SIWE and route guards; include tests and docs.",
-    acceptanceCriteria: [
-      "Route guards enforce auth on protected pages",
-      "SIWE session persists & refreshes correctly", 
-      "Unit & integration tests pass in CI",
-      "Docs include setup, env vars, and edge cases"
-    ]
+    milestones: ""
   };
 
-  const formatPrice = () => {
-    return `$${rewardAmount}`;
-  };
-
-  const formatTimeline = () => {
-    return `${duration} days`;
-  };
-
-  const formatDueDate = () => {
-    const date = new Date(dueDate);
-    return `Due: ${date.toLocaleDateString('en-US', { month: 'short', day: '2-digit' })}`;
-  };
-
-  // Simplified synchronization functions
-  const handleDurationChange = (newDuration: string) => {
-    const durationNum = parseInt(newDuration);
-    if (isNaN(durationNum) || durationNum < 1) return;
+  // Initialize milestones from previous step
+  useEffect(() => {
+    console.log("Project data:", projectData); // Debug log
+    console.log("MilestoneList from project data:", projectData.milestoneList); // Debug log
     
-    setDuration(newDuration);
-    // Calculate new due date based on duration from today
-    const today = new Date();
-    const newDueDate = new Date(today.getTime() + durationNum * 24 * 60 * 60 * 1000);
-    setDueDate(newDueDate.toISOString().split('T')[0]);
+    if (projectData.milestoneList && projectData.milestoneList.length > 0) {
+      // Convert milestoneList to MilestoneWithReward format
+      const convertedMilestones: MilestoneWithReward[] = projectData.milestoneList.map((milestone: any, index: number) => ({
+        id: milestone.id || `milestone-${index + 1}`,
+        title: milestone.title || 'New Milestone',
+        outcome: milestone.outcome || '',
+        proof: milestone.proof || '',
+        timeline: milestone.timeline || '3 days',
+        payout: milestone.payout || '25%',
+        rewardAmount: '0',
+        currency: 'USDC',
+        dueDate: new Date(Date.now() + (index + 1) * 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+      }));
+      console.log("Setting converted milestones:", convertedMilestones); // Debug log
+      setMilestones(convertedMilestones);
+    } else if (projectData.milestones && projectData.milestones.trim()) {
+      // Fallback: Parse milestones from AI text
+      const parsedMilestones = parseMilestonesFromText(projectData.milestones);
+      console.log("Setting parsed milestones:", parsedMilestones); // Debug log
+      setMilestones(parsedMilestones);
+    } else {
+      console.log("No milestones found, using defaults"); // Debug log
+      // Create default milestones if none provided
+      const defaultMilestones: MilestoneWithReward[] = [
+        {
+          id: "milestone-1",
+          title: "Authentication Setup",
+          outcome: "Users can log in with wallet",
+          proof: "video demo of login flow",
+          timeline: "3 days",
+          payout: "30%",
+          rewardAmount: "840",
+          currency: "USDC",
+          dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+        },
+        {
+          id: "milestone-2", 
+          title: "Route Protection",
+          outcome: "Protected routes redirect to login",
+          proof: "screenshot of redirect behavior",
+          timeline: "2 days",
+          payout: "20%",
+          rewardAmount: "560",
+          currency: "USDC",
+          dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+        }
+      ];
+      setMilestones(defaultMilestones);
+    }
+  }, [projectData.milestoneList, projectData.milestones]);
+
+  // Parse milestones from AI text
+  const parseMilestonesFromText = (text: string): MilestoneWithReward[] => {
+    if (!text) return [];
+    
+    console.log("Parsing milestones from text:", text); // Debug log
+    
+    const lines = text.split('\n').filter(line => line.trim());
+    const milestones: MilestoneWithReward[] = [];
+    let currentMilestone: Partial<MilestoneWithReward> = {};
+    
+    lines.forEach((line, index) => {
+      const trimmed = line.trim();
+      
+      // Check for numbered milestones (1., 2., etc.)
+      if (/^\d+\./.test(trimmed)) {
+        // Save previous milestone if it exists
+        if (currentMilestone.title) {
+          milestones.push(createMilestoneWithReward(currentMilestone as any));
+        }
+        // Start new milestone
+        currentMilestone = {
+          id: `milestone-${milestones.length + 1}`,
+          title: trimmed.replace(/^\d+\.\s*/, ''),
+          outcome: '',
+          proof: '',
+          timeline: '',
+          payout: '',
+          rewardAmount: '0',
+          currency: 'USDC',
+          dueDate: defaultDate
+        };
+      } else if (currentMilestone.title && trimmed) {
+        // Parse milestone details
+        if (trimmed.toLowerCase().includes('outcome:')) {
+          currentMilestone.outcome = trimmed.replace(/outcome:\s*/i, '');
+        } else if (trimmed.toLowerCase().includes('proof:')) {
+          currentMilestone.proof = trimmed.replace(/proof:\s*/i, '');
+        } else if (trimmed.toLowerCase().includes('timeline:')) {
+          currentMilestone.timeline = trimmed.replace(/timeline:\s*/i, '');
+        } else if (trimmed.toLowerCase().includes('payout:')) {
+          currentMilestone.payout = trimmed.replace(/payout:\s*/i, '');
+        } else if (!currentMilestone.outcome) {
+          // If no specific label, treat as outcome
+          currentMilestone.outcome = trimmed;
+        }
+      }
+    });
+    
+    // Add the last milestone
+    if (currentMilestone.title) {
+      milestones.push(createMilestoneWithReward(currentMilestone as any));
+    }
+    
+    console.log("Parsed milestones:", milestones); // Debug log
+    return milestones;
   };
 
-  const handleDateChange = (newDate: string) => {
-    if (!newDate) return;
-    
-    setDueDate(newDate);
-    // Calculate duration from today to the selected date
-    const today = new Date();
-    const selectedDate = new Date(newDate);
-    const diffTime = selectedDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    setDuration(Math.max(1, diffDays).toString());
+  const createMilestoneWithReward = (milestone: Partial<MilestoneWithReward>): MilestoneWithReward => {
+    return {
+      id: milestone.id || `milestone-${Date.now()}`,
+      title: milestone.title || 'New Milestone',
+      outcome: milestone.outcome || '',
+      proof: milestone.proof || '',
+      timeline: milestone.timeline || '3 days',
+      payout: milestone.payout || '25%',
+      rewardAmount: milestone.rewardAmount || '0',
+      currency: milestone.currency || 'USDC',
+      dueDate: milestone.dueDate || defaultDate
+    };
+  };
+
+  // Milestone management functions
+  const updateMilestone = (id: string, updates: Partial<MilestoneWithReward>) => {
+    setMilestones(prev => prev.map(m => m.id === id ? { ...m, ...updates } : m));
+    // Clear validation errors when user starts making changes
+    if (validationErrors.length > 0) {
+      setValidationErrors([]);
+    }
+  };
+
+  const addMilestone = () => {
+    const newMilestone: MilestoneWithReward = {
+      id: `milestone-${Date.now()}`,
+      title: 'New Milestone',
+      outcome: '',
+      proof: '',
+      timeline: '3 days',
+      payout: '25%',
+      rewardAmount: '0',
+      currency: 'USDC',
+      dueDate: defaultDate
+    };
+    setMilestones(prev => [...prev, newMilestone]);
+    // Clear validation errors when adding milestones
+    if (validationErrors.length > 0) {
+      setValidationErrors([]);
+    }
+  };
+
+  const removeMilestone = (id: string) => {
+    setMilestones(prev => prev.filter(m => m.id !== id));
+  };
+
+  const getTotalReward = () => {
+    return milestones.reduce((total, milestone) => total + parseFloat(milestone.rewardAmount || '0'), 0);
+  };
+
+  const getTotalTimeline = () => {
+    return milestones.reduce((total, milestone) => {
+      const days = parseInt(milestone.timeline?.replace(/\D/g, '') || '0');
+      return total + days;
+    }, 0);
   };
 
   const complexityOptions = [
@@ -105,28 +245,41 @@ const RewardTimeline = () => {
     navigate("/hiring/inputs-context", { state: projectData });
   };
 
-  const handleNext = () => {
-    // Validate required fields
-    if (!rewardAmount.trim() || parseFloat(rewardAmount) <= 0) {
-      alert("Please enter a valid reward amount.");
-      return;
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+
+  const validateMilestones = () => {
+    const errors: string[] = [];
+    
+    if (milestones.length === 0) {
+      errors.push("Please add at least one milestone.");
     }
     
-    if (!duration.trim() || parseInt(duration) <= 0) {
-      alert("Please enter a valid duration in days.");
-      return;
-    }
-    
-    navigate("/hiring/preview-publish", { 
-      state: { 
-        ...projectData,
-        rewardAmount,
-        currency,
-        complexity,
-        duration,
-        dueDate
-      } 
+    milestones.forEach((milestone, index) => {
+      if (!milestone.rewardAmount.trim() || parseFloat(milestone.rewardAmount) <= 0) {
+        errors.push(`Milestone ${index + 1}: Please enter a valid reward amount.`);
+      }
+      if (!milestone.timeline.trim()) {
+        errors.push(`Milestone ${index + 1}: Please enter a timeline.`);
+      }
     });
+    
+    setValidationErrors(errors);
+    return errors.length === 0;
+  };
+
+  const handleNext = () => {
+    if (validateMilestones()) {
+      navigate("/hiring/preview-publish", { 
+        state: { 
+          ...projectData,
+          milestones,
+          totalReward: getTotalReward(),
+          totalTimeline: getTotalTimeline(),
+          currency,
+          complexity
+        } 
+      });
+    }
   };
 
   return (
@@ -150,31 +303,152 @@ const RewardTimeline = () => {
             <Card className="p-8 shadow-card border-border bg-card">
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <h2 className="text-xl font-semibold text-gray-900">Step 3 · Set reward & timeline</h2>
+                  <h2 className="text-xl font-semibold text-gray-900">Step 3 · Set rewards & timelines</h2>
                   <p className="text-sm text-gray-600">
-                    Fixed price = faster approvals.
+                    Configure rewards and timelines for each milestone.
                   </p>
                 </div>
 
-                <div className="space-y-6">
-                  {/* Reward */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-card-foreground">Reward</label>
-                    <div className="flex gap-4">
-                      <div className="relative flex-1 max-w-56">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-base text-card-foreground">$</span>
-                        <Input
-                          type="number"
-                          value={rewardAmount}
-                          onChange={(e) => setRewardAmount(e.target.value)}
-                          className={`pl-8 text-base bg-muted border-border h-11 ${
-                            (!rewardAmount.trim() || parseFloat(rewardAmount) <= 0) ? 'border-red-300' : ''
-                          }`}
-                          placeholder="0"
-                        />
-                      </div>
+                {/* Project Summary */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/30 rounded-lg">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-card-foreground">${getTotalReward().toLocaleString()}</div>
+                    <div className="text-xs text-muted-foreground">Total Reward</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-card-foreground">{getTotalTimeline()}</div>
+                    <div className="text-xs text-muted-foreground">Total Days</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-card-foreground">{milestones.length}</div>
+                    <div className="text-xs text-muted-foreground">Milestones</div>
+                  </div>
+                </div>
+
+                {/* Milestones */}
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-card-foreground">Milestone Rewards & Timelines</h3>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    {milestones.map((milestone, index) => (
+                      <Card key={milestone.id} className="p-4 border shadow-sm bg-card">
+                        <div className="space-y-4">
+                          {/* Milestone Header */}
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className="text-sm font-semibold text-card-foreground">
+                                Milestone {index + 1}: {milestone.title.replace(/\*\*/g, '').replace(/^Title:\s*/i, '')}
+                              </h4>
+                              <p className="text-xs text-muted-foreground mt-1">{milestone.outcome.replace(/\*\*/g, '')}</p>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => removeMilestone(milestone.id)}
+                              className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                            >
+                              ×
+                            </Button>
+                          </div>
+
+                          {/* Reward & Timeline Controls */}
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {/* Reward Amount */}
+                            <div className="space-y-2">
+                              <Label className="text-xs font-medium text-muted-foreground">Reward Amount</Label>
+                              <div className="flex gap-2">
+                                <div className="relative flex-1">
+                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-card-foreground">$</span>
+                                  <Input
+                                    type="number"
+                                    value={milestone.rewardAmount}
+                                    onChange={(e) => updateMilestone(milestone.id, { rewardAmount: e.target.value })}
+                                    className="pl-8 text-sm bg-muted border-border h-9"
+                                    placeholder="0"
+                                  />
+                                </div>
+                                <Select 
+                                  value={milestone.currency} 
+                                  onValueChange={(value) => updateMilestone(milestone.id, { currency: value })}
+                                >
+                                  <SelectTrigger className="w-20 bg-muted border-border h-9">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {currencyOptions.map((option) => (
+                                      <SelectItem key={option.value} value={option.value}>
+                                        {option.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+
+                            {/* Timeline */}
+                            <div className="space-y-2">
+                              <Label className="text-xs font-medium text-muted-foreground">Timeline</Label>
+                              <Input
+                                value={milestone.timeline.replace(/\*\*/g, '')}
+                                onChange={(e) => updateMilestone(milestone.id, { timeline: e.target.value })}
+                                className="text-sm bg-muted border-border h-9"
+                                placeholder="e.g., 3 days"
+                              />
+                            </div>
+
+                            {/* Due Date */}
+                            <div className="space-y-2">
+                              <Label className="text-xs font-medium text-muted-foreground">Due Date</Label>
+                              <Input
+                                type="date"
+                                value={milestone.dueDate}
+                                onChange={(e) => updateMilestone(milestone.id, { dueDate: e.target.value })}
+                                className="text-sm bg-muted border-border h-9"
+                                min={defaultDate}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Milestone Details */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                            <div>
+                              <span className="font-medium text-muted-foreground">Proof:</span>
+                              <span className="ml-2 text-muted-foreground">{milestone.proof.replace(/\*\*/g, '')}</span>
+                            </div>
+                            <div>
+                              <span className="font-medium text-muted-foreground">Payout:</span>
+                              <span className="ml-2 text-muted-foreground">{milestone.payout.replace(/\*\*/g, '')}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                    
+                    {/* Add Milestone Button at Bottom */}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={addMilestone}
+                      className="h-8 px-3 text-xs w-full"
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
+                      Add Milestone
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Global Settings */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-card-foreground">Global Settings</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Default Currency */}
+                    <div className="space-y-2">
+                      <Label className="text-sm font-bold text-card-foreground">Default Currency</Label>
                       <Select value={currency} onValueChange={setCurrency}>
-                        <SelectTrigger className="w-32 bg-muted border-border h-11">
+                        <SelectTrigger className="bg-muted border-border h-11">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -186,94 +460,48 @@ const RewardTimeline = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                  </div>
 
-                  {/* Complexity */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-card-foreground">Complexity</label>
-                    <Select value={complexity} onValueChange={setComplexity}>
-                      <SelectTrigger className="max-w-md bg-muted border-border h-11">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {complexityOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Duration */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-card-foreground">Duration</label>
-                    <div className="flex gap-4">
-                      <div className="relative">
-                        <Input
-                          type="number"
-                          value={duration}
-                          onChange={(e) => handleDurationChange(e.target.value)}
-                          className={`w-56 text-base bg-muted border-border h-11 pr-16 ${
-                            (!duration.trim() || parseInt(duration) <= 0) ? 'border-red-300' : ''
-                          }`}
-                          placeholder="0"
-                          min="1"
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-base text-muted-foreground">days</span>
-                      </div>
-                      <div className="relative">
-                        <Input
-                          type="date"
-                          value={dueDate}
-                          onChange={(e) => handleDateChange(e.target.value)}
-                          className="w-56 text-base bg-muted border-border h-11"
-                          min={defaultDate}
-                        />
-                      </div>
+                    {/* Complexity */}
+                    <div className="space-y-2">
+                      <Label className="text-sm font-bold text-card-foreground">Project Complexity</Label>
+                      <Select value={complexity} onValueChange={setComplexity}>
+                        <SelectTrigger className="bg-muted border-border h-11">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {complexityOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
-                    <p className="text-xs text-muted-foreground">{formatDueDate()}</p>
                   </div>
                 </div>
 
-                {/* Milestone Modules */}
-                {projectData.milestones && (
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-card-foreground">Milestone Modules</label>
-                      <p className="text-xs text-muted-foreground">
-                        Review and adjust milestone details, payments, and timelines.
-                      </p>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      {/* This would be populated from the milestones passed from previous steps */}
-                      <div className="text-xs text-muted-foreground p-4 border border-dashed rounded-lg">
-                        Milestone modules will be displayed here based on the AI-generated milestones from the previous step.
+                {/* Validation Errors */}
+                {validationErrors.length > 0 && (
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0">
+                        <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <div className="ml-3">
+                        <h3 className="text-sm font-medium text-red-800">Please fix the following issues:</h3>
+                        <div className="mt-2 text-sm text-red-700">
+                          <ul className="list-disc list-inside space-y-1">
+                            {validationErrors.map((error, index) => (
+                              <li key={index}>{error}</li>
+                            ))}
+                          </ul>
+                        </div>
                       </div>
                     </div>
                   </div>
                 )}
-
-                {/* AI Action Buttons */}
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    variant="secondary"
-                    disabled
-                    className="h-8 px-6 text-muted-foreground bg-muted/50 border-muted cursor-not-allowed font-bold text-sm"
-                  >
-                    Suggest reward
-                    <span className="ml-2 text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">Coming Soon</span>
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    disabled
-                    className="h-8 px-6 text-muted-foreground bg-muted/50 border-muted cursor-not-allowed font-bold text-sm"
-                  >
-                    Suggest duration
-                    <span className="ml-2 text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">Coming Soon</span>
-                  </Button>
-                </div>
 
                 {/* Navigation */}
                 <div className="flex justify-between pt-6">

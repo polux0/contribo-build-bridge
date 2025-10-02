@@ -17,9 +17,10 @@ interface AISuggestionCardProps {
   milestones: string;
   isGenerating: boolean;
   onInsert: () => void;
+  onMilestonesChange?: (milestones: Milestone[]) => void;
 }
 
-const AISuggestionCard = ({ milestones, isGenerating, onInsert }: AISuggestionCardProps) => {
+const AISuggestionCard = ({ milestones, isGenerating, onInsert, onMilestonesChange }: AISuggestionCardProps) => {
   const [milestoneList, setMilestoneList] = useState<Milestone[]>([]);
 
   // Parse milestones from AI text into structured format
@@ -76,6 +77,13 @@ const AISuggestionCard = ({ milestones, isGenerating, onInsert }: AISuggestionCa
       setMilestoneList(parsed);
     }
   }, [milestones, isGenerating]);
+
+  // Notify parent when milestone list changes
+  useEffect(() => {
+    if (onMilestonesChange) {
+      onMilestonesChange(milestoneList);
+    }
+  }, [milestoneList, onMilestonesChange]);
 
   const handleUpdateMilestone = (updatedMilestone: Milestone) => {
     setMilestoneList(prev => 
