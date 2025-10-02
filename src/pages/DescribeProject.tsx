@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProgressStepper from "@/components/ProgressStepper";
 import AISuggestionCard from "@/components/AISuggestionCard";
-import { generateAISuggestion, refineAISuggestion } from "@/utils/aiSuggestions";
+import { generatePlainMilestones } from "@/utils/aiSuggestions";
 
 const steps = [
   { number: 1, label: "Describe", sublabel: "Need" },
@@ -21,27 +21,49 @@ const DescribeProject = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [description, setDescription] = useState("Add wallet login and protect routes with SIWE");
-  const [aiSuggestion, setAiSuggestion] = useState(generateAISuggestion("Add wallet login and protect routes with SIWE"));
+  const [milestones, setMilestones] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
   
   useEffect(() => {
     // Initialize with data from previous step
     if (location.state?.description) {
       setDescription(location.state.description);
-      setAiSuggestion(generateAISuggestion(location.state.description));
+      generateMilestones(location.state.description);
     } else if (location.state?.template) {
       const templateDesc = `Implement ${location.state.template.title}`;
       setDescription(templateDesc);
-      setAiSuggestion(generateAISuggestion(templateDesc));
+      generateMilestones(templateDesc);
+    } else {
+      // Generate initial milestones
+      generateMilestones(description);
     }
   }, [location.state]);
 
-  // Update suggestion when description changes
+  // Debounced milestone generation - only generate after user stops typing
   useEffect(() => {
-    if (description.trim()) {
-      const newSuggestion = generateAISuggestion(description);
-      setAiSuggestion(newSuggestion);
-    }
+    if (!description.trim()) return;
+    
+    const timeoutId = setTimeout(() => {
+      generateMilestones(description);
+    }, 1500); // Wait 1.5 seconds after user stops typing
+    
+    return () => clearTimeout(timeoutId);
   }, [description]);
+
+  const generateMilestones = async (need: string) => {
+    if (!need.trim()) return;
+    
+    setIsGenerating(true);
+    try {
+      const result = await generatePlainMilestones(need);
+      setMilestones(result);
+    } catch (error) {
+      console.error("Failed to generate milestones:", error);
+      setMilestones("Failed to generate milestones. Please try again.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const handleBack = () => {
     navigate("/hiring");
@@ -50,11 +72,8 @@ const DescribeProject = () => {
   const handleNext = () => {
     navigate("/hiring/inputs-context", { 
       state: { 
-        title: aiSuggestion.title,
-        price: aiSuggestion.price,
-        timeline: aiSuggestion.timeline,
-        description: aiSuggestion.description,
-        deliverables: aiSuggestion.deliverables
+        description: description,
+        milestones: milestones
       } 
     });
   };
@@ -64,8 +83,8 @@ const DescribeProject = () => {
   };
 
   const handleAIAction = (action: string) => {
-    const refinedSuggestion = refineAISuggestion(aiSuggestion, action);
-    setAiSuggestion(refinedSuggestion);
+    // For now, just regenerate milestones with the same description
+    generateMilestones(description);
   };
 
   return (
@@ -116,9 +135,10 @@ const DescribeProject = () => {
                     )}
                   </div>
 
-                  {/* AI Suggestion */}
+                  {/* AI Milestones */}
                   <AISuggestionCard 
-                    suggestion={aiSuggestion}
+                    milestones={milestones}
+                    isGenerating={isGenerating}
                     onInsert={handleInsertSuggestion}
                   />
 

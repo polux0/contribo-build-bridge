@@ -1,3 +1,69 @@
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  apiKey: import.meta.env.VITE_OPENAI_API_KEY,
+  dangerouslyAllowBrowser: true,
+});
+
+const SYSTEM = `You are a product delivery lead. Given a plain-English NEED, return 2–4 milestones that a non-technical buyer can understand.
+
+Milestone policy:
+- Each milestone is a small, working outcome the buyer can SEE (not internal tasks).
+- Each milestone must include:
+  • Title (short)
+  • Outcome (plain words: what the buyer sees working)
+  • Proof (1–2 simple artifacts: VIDEO, SCREENSHOT, DEMO_URL, LIVE_LINK, TX_HASH)
+  • Timeline (days)
+  • Payout (percent of total or a rough band)
+
+Constraints:
+- Only produce milestones directly related to the NEED provided.
+- Do NOT output milestones like "System design," "Architecture document," "Prototype," "User testing," "Final implementation."
+- Do NOT invent unrelated milestones (e.g. branding, marketing, social media, websites) unless the NEED explicitly asks for them.
+- Stay focused on functional, proof-based outcomes of the NEED.
+
+Output format:
+- Return as a simple numbered list in plain text.
+- No code-level details. No extra commentary.`;
+
+const BANNED = [/design/i, /architecture/i, /prototype/i, /user testing/i, /final implementation/i];
+
+function needsRepair(text: string) {
+  const hasBanned = BANNED.some(rx => rx.test(text));
+  const hasProof = /(VIDEO|SCREENSHOT|DEMO_URL|LIVE_LINK|TX_HASH)/i.test(text);
+  return hasBanned || !hasProof;
+}
+
+// Returns a plain text string you can drop in your UI
+export async function generatePlainMilestones(need: string, context?: string) {
+  const USER = `NEED:\n${need}\n\nCONTEXT (optional):\n${context || "unspecified"}`;
+  const res1 = await client.chat.completions.create({
+    model: "gpt-4o-mini",
+    temperature: 0.2,
+    messages: [
+      { role: "system", content: SYSTEM },
+      { role: "user", content: USER }
+    ],
+  });
+  let out = res1.choices[0]?.message?.content?.trim() ?? "";
+
+  if (needsRepair(out)) {
+    const repair = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      temperature: 0,
+      messages: [
+        { role: "system", content: SYSTEM },
+        { role: "user", content: USER },
+        { role: "assistant", content: out },
+        { role: "user", content: "Your milestones included items unrelated to the NEED or abstract planning steps. Rewrite them so they ONLY address the given NEED as functional, proof-based outcomes the buyer can see. Use 2–4 milestones in the same plain-text format." }
+      ],
+    });
+    out = repair.choices[0]?.message?.content?.trim() ?? out;
+  }
+
+  return out;
+}
+
 interface AISuggestion {
   title: string;
   description: string;
