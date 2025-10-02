@@ -12,9 +12,9 @@ import { Check } from "lucide-react";
 const steps = [
   { number: 1, label: "Describe", sublabel: "Need" },
   { number: 2, label: "Inputs &", sublabel: "Context" },
-  { number: 3, label: "Acceptance", sublabel: "Criteria" },
-  { number: 4, label: "Reward &", sublabel: "Timeline" },
-  { number: 5, label: "Preview &", sublabel: "Publish" }
+  // { number: 3, label: "Acceptance", sublabel: "Criteria" }, // Commented out for organizations outsourcing
+  { number: 3, label: "Reward &", sublabel: "Timeline" },
+  { number: 4, label: "Preview &", sublabel: "Publish" }
 ];
 
 const PreviewPublish = () => {
@@ -92,7 +92,7 @@ const PreviewPublish = () => {
 
           {/* Progress Stepper */}
           <div className="px-6">
-            <ProgressStepper steps={steps} currentStep={5} />
+            <ProgressStepper steps={steps} currentStep={4} />
           </div>
 
           {/* Main Content */}

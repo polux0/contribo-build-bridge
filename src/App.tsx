@@ -14,7 +14,7 @@ import Opportunities from "./pages/Opportunities";
 import Hiring from "./pages/Hiring";
 import DescribeProject from "./pages/DescribeProject";
 import InputsContext from "./pages/InputsContext";
-import AcceptanceCriteria from "./pages/AcceptanceCriteria";
+// import AcceptanceCriteria from "./pages/AcceptanceCriteria"; // COMMENTED OUT FOR ORGANIZATIONS OUTSOURCING
 import RewardTimeline from "./pages/RewardTimeline";
 import PreviewPublish from "./pages/PreviewPublish";
 import Apply from "./pages/Apply";
@@ -39,7 +39,7 @@ const App = () => (
                 <Route path="/hiring" element={<Hiring />} />
                 <Route path="/hiring/describe-project" element={<DescribeProject />} />
                 <Route path="/hiring/inputs-context" element={<InputsContext />} />
-                <Route path="/hiring/acceptance-criteria" element={<AcceptanceCriteria />} />
+                {/* <Route path="/hiring/acceptance-criteria" element={<AcceptanceCriteria />} /> */} {/* COMMENTED OUT FOR ORGANIZATIONS OUTSOURCING */}
                 <Route path="/hiring/reward-timeline" element={<RewardTimeline />} />
                 <Route path="/hiring/preview-publish" element={<PreviewPublish />} />
                 <Route path="/apply" element={<Apply />} />

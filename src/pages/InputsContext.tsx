@@ -12,9 +12,9 @@ import { Upload } from "lucide-react";
 const steps = [
   { number: 1, label: "Describe", sublabel: "Need" },
   { number: 2, label: "Inputs &", sublabel: "Context" },
-  { number: 3, label: "Acceptance", sublabel: "Criteria" },
-  { number: 4, label: "Reward &", sublabel: "Timeline" },
-  { number: 5, label: "Preview &", sublabel: "Publish" }
+  // { number: 3, label: "Acceptance", sublabel: "Criteria" }, // Commented out for organizations outsourcing
+  { number: 3, label: "Reward &", sublabel: "Timeline" },
+  { number: 4, label: "Preview &", sublabel: "Publish" }
 ];
 
 const InputsContext = () => {
@@ -66,7 +66,7 @@ const InputsContext = () => {
   };
 
   const handleNext = () => {
-    navigate("/hiring/acceptance-criteria", { 
+    navigate("/hiring/reward-timeline", { 
       state: { 
         ...projectData,
         repoUrl,
@@ -174,8 +174,8 @@ const InputsContext = () => {
                   </div>
                 </div>
 
-                {/* AI Action Buttons */}
-                <div className="flex flex-wrap gap-2">
+                {/* AI Action Buttons - COMMENTED OUT */}
+                {/* <div className="flex flex-wrap gap-2">
                   <Button
                     variant="secondary"
                     disabled
@@ -192,7 +192,7 @@ const InputsContext = () => {
                     Check dependencies
                     <span className="ml-2 text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">Coming Soon</span>
                   </Button>
-                </div>
+                </div> */}
 
                 {/* Navigation */}
                 <div className="flex justify-between pt-6">
