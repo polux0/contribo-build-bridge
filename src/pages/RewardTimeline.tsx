@@ -108,7 +108,7 @@ const RewardTimeline = () => {
 
   // Parse milestones from AI text
   const parseMilestonesFromText = (text: string): MilestoneWithReward[] => {
-    if (!text) return [];
+    if (!text || typeof text !== 'string') return [];
     
     console.log("Parsing milestones from text:", text); // Debug log
     

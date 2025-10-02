@@ -25,7 +25,7 @@ const AISuggestionCard = ({ milestones, isGenerating, onInsert, onMilestonesChan
 
   // Parse milestones from AI text into structured format
   const parseMilestones = (text: string): Milestone[] => {
-    if (!text) return [];
+    if (!text || typeof text !== 'string') return [];
     
     const lines = text.split('\n').filter(line => line.trim());
     const milestones: Milestone[] = [];

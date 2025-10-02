@@ -30,6 +30,9 @@ Output format:
 const BANNED = [/design/i, /architecture/i, /prototype/i, /user testing/i, /final implementation/i];
 
 function needsRepair(text: string) {
+  if (!text || typeof text !== 'string') {
+    return false;
+  }
   const hasBanned = BANNED.some(rx => rx.test(text));
   const hasProof = /(VIDEO|SCREENSHOT|DEMO_URL|LIVE_LINK|TX_HASH)/i.test(text);
   return hasBanned || !hasProof;
@@ -37,6 +40,10 @@ function needsRepair(text: string) {
 
 // Returns a plain text string you can drop in your UI
 export async function generatePlainMilestones(need: string, context?: string) {
+  if (!need || typeof need !== 'string') {
+    throw new Error('Need must be a non-empty string');
+  }
+  
   const USER = `NEED:\n${need}\n\nCONTEXT (optional):\n${context || "unspecified"}`;
   const res1 = await client.chat.completions.create({
     model: "gpt-4o-mini",

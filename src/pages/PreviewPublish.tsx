@@ -28,29 +28,19 @@ const PreviewPublish = () => {
   const projectData = location.state || {
     title: "Wallet Login + SIWE Protection",
     description: "Implement Web3 wallet auth with SIWE and route guards; include tests and docs.",
-    deliverables: [
-      "User registration and login flow",
-      "Session management and security",
-      "Route guards implementation",
-      "Tests and documentation"
-    ],
-    acceptanceCriteria: [
-      "Route guards enforce auth on protected pages",
-      "SIWE session persists & refreshes correctly", 
-      "Unit & integration tests pass in CI",
-      "Docs include setup, env vars, and edge cases"
-    ],
-    rewardAmount: "2800",
+    milestones: [],
+    totalReward: 0,
+    totalTimeline: 0,
     currency: "USDC",
-    duration: "10"
+    complexity: "medium"
   };
 
   const formatPrice = () => {
-    return `$${projectData.rewardAmount}`;
+    return `$${projectData.totalReward?.toLocaleString() || '0'}`;
   };
 
   const formatTimeline = () => {
-    return `${projectData.duration} days`;
+    return `${projectData.totalTimeline || 0} days`;
   };
 
   const handleEditPrevious = () => {
@@ -74,9 +64,9 @@ const PreviewPublish = () => {
   };
 
   const checklistItems = [
-    { id: 1, text: "Inputs added (repo/design/files)", completed: true },
-    { id: 2, text: "Acceptance criteria defined", completed: true },
-    { id: 3, text: "Reward & timeline set", completed: true }
+    { id: 1, text: "Project description provided", completed: true },
+    { id: 2, text: "Milestones generated and configured", completed: projectData.milestones && projectData.milestones.length > 0 },
+    { id: 3, text: "Rewards & timelines set for each milestone", completed: projectData.totalReward > 0 }
   ];
 
   return (
@@ -137,7 +127,7 @@ const PreviewPublish = () => {
                   </div>
 
                   {/* Navigation */}
-                  <div className="flex justify-between pt-24">
+                  <div className="flex justify-between pt-36">
                     <Button
                       variant="outline"
                       onClick={handleEditPrevious}
@@ -182,33 +172,28 @@ const PreviewPublish = () => {
                         {projectData.description}
                       </p>
                       
-                      {projectData.deliverables && projectData.deliverables.length > 0 && (
+                      {projectData.milestones && Array.isArray(projectData.milestones) && projectData.milestones.length > 0 && (
                         <>
                           <hr className="border-border" />
                           <div>
                             <p className="text-xs font-bold text-card-foreground mb-2">Milestones</p>
-                            <div className="space-y-2">
-                              {projectData.deliverables.map((deliverable, index) => (
-                                <div key={index} className="flex items-start gap-2">
-                                  <div className="w-1.5 h-1.5 bg-primary rounded-full flex-shrink-0 mt-1.5"></div>
-                                  <span className="text-xs text-muted-foreground leading-relaxed">{deliverable}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </>
-                      )}
-                      
-                      {projectData.acceptanceCriteria && projectData.acceptanceCriteria.length > 0 && (
-                        <>
-                          <hr className="border-border" />
-                          <div>
-                            <p className="text-xs font-bold text-card-foreground mb-2">Acceptance</p>
-                            <div className="space-y-2">
-                              {projectData.acceptanceCriteria.map((criterion, index) => (
-                                <div key={index} className="flex items-start gap-2">
-                                  <div className="w-1.5 h-1.5 bg-primary rounded-full flex-shrink-0 mt-1.5"></div>
-                                  <span className="text-xs text-muted-foreground leading-relaxed">{criterion}</span>
+                            <div className="space-y-1">
+                              {projectData.milestones.map((milestone, index) => (
+                                <div key={milestone?.id || index} className="flex items-center justify-between py-1.5 px-2 bg-muted/10 rounded text-xs whitespace-nowrap">
+                                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                                    <span className="text-muted-foreground font-medium flex-shrink-0">
+                                      {index + 1}.
+                                    </span>
+                                    <span className="text-card-foreground truncate min-w-0">
+                                      {milestone?.title?.replace(/\*\*/g, '')?.replace(/^Title:\s*/i, '') || 'Untitled Milestone'}
+                                    </span>
+                                    <span className="text-muted-foreground flex-shrink-0">
+                                      {milestone?.timeline?.replace(/\*\*/g, '') || 'TBD'}
+                                    </span>
+                                  </div>
+                                  <span className="text-primary font-medium ml-2 flex-shrink-0">
+                                    ${milestone?.rewardAmount || '0'}
+                                  </span>
                                 </div>
                               ))}
                             </div>
@@ -236,7 +221,7 @@ const PreviewPublish = () => {
         opportunityTitle={projectData.title}
         companyName="Project Published"
         customTitle="Project Published Successfully!"
-        customMessage="Your project is now live and developers can start applying. We'll notify you when someone applies. As soon as a developer expresses intent to contribute to a specific module, we'll ask you for a deposit."
+        customMessage="Your milestone project is now live and developers can start applying. We'll notify you when someone applies. As soon as a developer expresses intent to contribute to a specific milestone, we'll ask you for a deposit."
         customBadgeText="Published Successfully"
         customShareText={`I just published a new project: ${projectData.title}! Looking for talented developers. `}
       />
