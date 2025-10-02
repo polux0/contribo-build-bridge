@@ -83,7 +83,7 @@ const MilestoneCard = ({ milestone, onUpdate, onDelete }: MilestoneCardProps) =>
                 onChange={(e) => setEditedMilestone({ ...editedMilestone, outcome: e.target.value })}
                 className="text-xs mt-1"
                 rows={2}
-                placeholder="What the buyer will see working"
+                placeholder="What the organization will see working"
               />
             ) : (
               <p className="text-xs text-muted-foreground mt-1">{milestone.outcome.replace(/\*\*/g, '')}</p>
@@ -97,7 +97,7 @@ const MilestoneCard = ({ milestone, onUpdate, onDelete }: MilestoneCardProps) =>
                 value={editedMilestone.proof.replace(/\*\*/g, '')}
                 onChange={(e) => setEditedMilestone({ ...editedMilestone, proof: e.target.value })}
                 className="text-xs mt-1"
-                placeholder="VIDEO, SCREENSHOT, DEMO_URL, etc."
+                placeholder="video, screenshot, demo_url, etc."
               />
             ) : (
               <p className="text-xs text-muted-foreground mt-1">{milestone.proof.replace(/\*\*/g, '')}</p>

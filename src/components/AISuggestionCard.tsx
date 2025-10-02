@@ -102,17 +102,8 @@ const AISuggestionCard = ({ milestones, isGenerating, onInsert }: AISuggestionCa
   return (
     <Card className="p-4 border shadow-sm bg-card">
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div>
           <h3 className="text-sm font-bold text-card-foreground">Project Milestones</h3>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleAddMilestone}
-            className="h-7 px-3 text-xs"
-          >
-            <Plus className="h-3 w-3 mr-1" />
-            Add Milestone
-          </Button>
         </div>
         
         {isGenerating ? (
@@ -127,9 +118,29 @@ const AISuggestionCard = ({ milestones, isGenerating, onInsert }: AISuggestionCa
                 onDelete={handleDeleteMilestone}
               />
             ))}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleAddMilestone}
+              className="h-7 px-3 text-xs w-full"
+            >
+              <Plus className="h-3 w-3 mr-1" />
+              Add Milestone
+            </Button>
           </div>
         ) : (
-          <p className="text-xs text-muted-foreground">No milestones generated yet</p>
+          <div className="space-y-3">
+            <p className="text-xs text-muted-foreground">No milestones generated yet</p>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleAddMilestone}
+              className="h-7 px-3 text-xs w-full"
+            >
+              <Plus className="h-3 w-3 mr-1" />
+              Add Milestone
+            </Button>
+          </div>
         )}
       </div>
     </Card>

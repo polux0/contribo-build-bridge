@@ -142,21 +142,6 @@ const DescribeProject = () => {
                     onInsert={handleInsertSuggestion}
                   />
 
-                  {/* AI Action Chips */}
-                  <div className="flex flex-wrap gap-2">
-                    {["Refine with AI", "Tighten scope", "Suggest tests"].map((action) => (
-                      <Button
-                        key={action}
-                        variant="secondary"
-                        size="sm"
-                        disabled
-                        className="h-8 px-4 text-muted-foreground bg-muted/50 border-muted cursor-not-allowed font-bold text-sm relative"
-                      >
-                        {action}
-                        <span className="ml-2 text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">Coming Soon</span>
-                      </Button>
-                    ))}
-                  </div>
                 </div>
 
                 {/* Navigation */}
