@@ -7,13 +7,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProgressStepper from "@/components/ProgressStepper";
+import MilestoneCard from "@/components/MilestoneCard";
 
 const steps = [
   { number: 1, label: "Describe", sublabel: "Need" },
   { number: 2, label: "Inputs &", sublabel: "Context" },
-  { number: 3, label: "Acceptance", sublabel: "Criteria" },
-  { number: 4, label: "Reward &", sublabel: "Timeline" },
-  { number: 5, label: "Preview &", sublabel: "Publish" }
+  // { number: 3, label: "Acceptance", sublabel: "Criteria" }, // Commented out for organizations outsourcing
+  { number: 3, label: "Reward &", sublabel: "Timeline" },
+  { number: 4, label: "Preview &", sublabel: "Publish" }
 ];
 
 const RewardTimeline = () => {
@@ -101,7 +102,7 @@ const RewardTimeline = () => {
   };
 
   const handleBack = () => {
-    navigate("/hiring/acceptance-criteria", { state: projectData });
+    navigate("/hiring/inputs-context", { state: projectData });
   };
 
   const handleNext = () => {
@@ -141,7 +142,7 @@ const RewardTimeline = () => {
 
           {/* Progress Stepper */}
           <div className="px-6">
-            <ProgressStepper steps={steps} currentStep={4} />
+            <ProgressStepper steps={steps} currentStep={3} />
           </div>
 
           {/* Main Content */}
@@ -149,7 +150,7 @@ const RewardTimeline = () => {
             <Card className="p-8 shadow-card border-border bg-card">
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <h2 className="text-xl font-semibold text-gray-900">Step 4 · Set reward & timeline</h2>
+                  <h2 className="text-xl font-semibold text-gray-900">Step 3 · Set reward & timeline</h2>
                   <p className="text-sm text-gray-600">
                     Fixed price = faster approvals.
                   </p>
@@ -234,6 +235,25 @@ const RewardTimeline = () => {
                     <p className="text-xs text-muted-foreground">{formatDueDate()}</p>
                   </div>
                 </div>
+
+                {/* Milestone Modules */}
+                {projectData.milestones && (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-card-foreground">Milestone Modules</label>
+                      <p className="text-xs text-muted-foreground">
+                        Review and adjust milestone details, payments, and timelines.
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      {/* This would be populated from the milestones passed from previous steps */}
+                      <div className="text-xs text-muted-foreground p-4 border border-dashed rounded-lg">
+                        Milestone modules will be displayed here based on the AI-generated milestones from the previous step.
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* AI Action Buttons */}
                 <div className="flex flex-wrap gap-2">

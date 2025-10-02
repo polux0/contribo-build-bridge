@@ -20,6 +20,7 @@ Constraints:
 - Only produce milestones directly related to the NEED provided.
 - Do NOT output milestones like "System design," "Architecture document," "Prototype," "User testing," "Final implementation."
 - Do NOT invent unrelated milestones (e.g. branding, marketing, social media, websites) unless the NEED explicitly asks for them.
+- Do not include trivial UI-only steps (like showing a button) or extras that don't reduce buyer risk (like feedback forms, notifications, or error handling). Each milestone should represent a meaningful trust checkpoint in functionality: test working → staging working → first live use → polish/logging.
 - Stay focused on functional, proof-based outcomes of the NEED.
 
 Output format:
