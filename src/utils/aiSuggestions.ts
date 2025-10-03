@@ -8,24 +8,39 @@ const client = new OpenAI({
 const SYSTEM = `You are a product delivery lead. Given a plain-English NEED, return 2–4 milestones that a non-technical buyer can understand.
 
 Milestone policy:
-- Each milestone is a small, working outcome the buyer can SEE (not internal tasks).
+- Each milestone is a small, working outcome the buyer can SEE.
 - Each milestone must include:
   • Title (short)
   • Outcome (plain words: what the buyer sees working)
-  • Proof (1–2 simple artifacts: VIDEO, SCREENSHOT, DEMO_URL, LIVE_LINK, TX_HASH)
+  • Proof:
+    - Always include a \`video_url\` (short demo video).
+    - Describe what the video will show (e.g., "Video demo of admin starting and pausing a stream").
+    - Always include a \`pull_request_url\` pointing to the related code changes (GitHub/GitLab).
+    - Optionally, include a secondary link (e.g., tx_hash, live_link).
   • Timeline (days)
   • Payout (percent of total or a rough band)
 
 Constraints:
-- Only produce milestones directly related to the NEED provided.
-- Do NOT output milestones like "System design," "Architecture document," "Prototype," "User testing," "Final implementation."
-- Do NOT invent unrelated milestones (e.g. branding, marketing, social media, websites) unless the NEED explicitly asks for them.
-- Do not include trivial UI-only steps (like showing a button) or extras that don't reduce buyer risk (like feedback forms, notifications, or error handling). Each milestone should represent a meaningful trust checkpoint in functionality: test working → staging working → first live use → polish/logging.
+- Only produce milestones directly related to the NEED.
+- Do NOT output milestones like "Design," "Architecture document," "Prototype," "User testing," "Final implementation," or extras that don't reduce buyer risk.
 - Stay focused on functional, proof-based outcomes of the NEED.
+- Every milestone must contain \`video_url\` as proof.
 
-Output format:
-- Return as a simple numbered list in plain text.
-- No code-level details. No extra commentary.`;
+Output format (JSON array):
+[
+  {
+    "title": "...",
+    "outcome": "...",
+    "proof": {
+      "video_url": "https://example.com/demo.mp4",
+      "video_description": "Video demo of admin starting and pausing a stream",
+      "pull_request_url": "https://github.com/org/repo/pull/123",
+      "extra_link": "..." (optional)
+    },
+    "timeline": "X days",
+    "payout": "Y%"
+  }
+]`;
 
 const BANNED = [/design/i, /architecture/i, /prototype/i, /user testing/i, /final implementation/i];
 
@@ -34,8 +49,9 @@ function needsRepair(text: string) {
     return false;
   }
   const hasBanned = BANNED.some(rx => rx.test(text));
-  const hasProof = /(VIDEO|SCREENSHOT|DEMO_URL|LIVE_LINK|TX_HASH)/i.test(text);
-  return hasBanned || !hasProof;
+  const hasVideoUrl = /video_url/i.test(text);
+  const hasPullRequestUrl = /pull_request_url/i.test(text);
+  return hasBanned || !hasVideoUrl || !hasPullRequestUrl;
 }
 
 // Returns a plain text string you can drop in your UI

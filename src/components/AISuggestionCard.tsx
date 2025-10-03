@@ -8,6 +8,8 @@ interface Milestone {
   id: string;
   title: string;
   outcome: string;
+  video: string;
+  videoDescription: string;
   proof: string;
   timeline: string;
   payout: string;
@@ -22,11 +24,54 @@ interface AISuggestionCardProps {
 
 const AISuggestionCard = ({ milestones, isGenerating, onInsert, onMilestonesChange }: AISuggestionCardProps) => {
   const [milestoneList, setMilestoneList] = useState<Milestone[]>([]);
+  const [newMilestoneIds, setNewMilestoneIds] = useState<Set<string>>(new Set());
 
-  // Parse milestones from AI text into structured format
+  // Parse milestones from AI JSON response into structured format
   const parseMilestones = (text: string): Milestone[] => {
     if (!text || typeof text !== 'string') return [];
     
+    try {
+      // Try to parse as JSON first
+      const jsonData = JSON.parse(text);
+      if (Array.isArray(jsonData)) {
+        return jsonData.map((milestone, index) => {
+          let video = '';
+          let videoDescription = '';
+          let proof = '';
+          
+          if (typeof milestone.proof === 'object') {
+            video = milestone.proof.video_url || '';
+            videoDescription = milestone.proof.video_description || '';
+            
+            const proofParts = [];
+            if (milestone.proof.pull_request_url) {
+              proofParts.push(milestone.proof.pull_request_url);
+            }
+            if (milestone.proof.extra_link) {
+              proofParts.push(milestone.proof.extra_link);
+            }
+            proof = proofParts.join(', ');
+          } else {
+            proof = milestone.proof || '';
+          }
+          
+          return {
+            id: `milestone-${index + 1}`,
+            title: milestone.title || '',
+            outcome: milestone.outcome || '',
+            video: video,
+            videoDescription: videoDescription,
+            proof: proof,
+            timeline: milestone.timeline || '',
+            payout: milestone.payout || ''
+          };
+        });
+      }
+    } catch (error) {
+      console.log('Failed to parse JSON, falling back to text parsing:', error);
+    }
+    
+    // Fallback to text parsing if JSON fails
     const lines = text.split('\n').filter(line => line.trim());
     const milestones: Milestone[] = [];
     let currentMilestone: Partial<Milestone> = {};
@@ -36,13 +81,18 @@ const AISuggestionCard = ({ milestones, isGenerating, onInsert, onMilestonesChan
       
       // Check if this is a numbered milestone start
       if (/^\d+\./.test(trimmed)) {
-        if (currentMilestone.title) {
+        if (currentMilestone.title || currentMilestone.outcome) {
           milestones.push(currentMilestone as Milestone);
         }
+        // Extract title content and remove "Title:" prefix if present
+        const content = trimmed.replace(/^\d+\.\s*/, '');
+        const title = content.replace(/^title:\s*/i, '').trim();
         currentMilestone = {
           id: `milestone-${milestones.length + 1}`,
-          title: trimmed.replace(/^\d+\.\s*/, ''),
+          title: title,
           outcome: '',
+          video: '',
+          videoDescription: '',
           proof: '',
           timeline: '',
           payout: ''
@@ -51,6 +101,10 @@ const AISuggestionCard = ({ milestones, isGenerating, onInsert, onMilestonesChan
         // Try to parse structured content
         if (trimmed.toLowerCase().includes('outcome:')) {
           currentMilestone.outcome = trimmed.replace(/outcome:\s*/i, '');
+        } else if (trimmed.toLowerCase().includes('video:')) {
+          currentMilestone.video = trimmed.replace(/video:\s*/i, '');
+        } else if (trimmed.toLowerCase().includes('video description:')) {
+          currentMilestone.videoDescription = trimmed.replace(/video description:\s*/i, '');
         } else if (trimmed.toLowerCase().includes('proof:')) {
           currentMilestone.proof = trimmed.replace(/proof:\s*/i, '');
         } else if (trimmed.toLowerCase().includes('timeline:')) {
@@ -89,6 +143,12 @@ const AISuggestionCard = ({ milestones, isGenerating, onInsert, onMilestonesChan
     setMilestoneList(prev => 
       prev.map(m => m.id === updatedMilestone.id ? updatedMilestone : m)
     );
+    // Remove from new milestones set once it's been edited
+    setNewMilestoneIds(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(updatedMilestone.id);
+      return newSet;
+    });
   };
 
   const handleDeleteMilestone = (id: string) => {
@@ -96,15 +156,19 @@ const AISuggestionCard = ({ milestones, isGenerating, onInsert, onMilestonesChan
   };
 
   const handleAddMilestone = () => {
+    const newId = `milestone-${Date.now()}`;
     const newMilestone: Milestone = {
-      id: `milestone-${Date.now()}`,
+      id: newId,
       title: 'New Milestone',
       outcome: '',
+      video: '',
+      videoDescription: '',
       proof: '',
       timeline: '',
       payout: ''
     };
     setMilestoneList(prev => [...prev, newMilestone]);
+    setNewMilestoneIds(prev => new Set([...prev, newId]));
   };
 
   return (
@@ -124,6 +188,7 @@ const AISuggestionCard = ({ milestones, isGenerating, onInsert, onMilestonesChan
                 milestone={milestone}
                 onUpdate={handleUpdateMilestone}
                 onDelete={handleDeleteMilestone}
+                isNew={newMilestoneIds.has(milestone.id)}
               />
             ))}
             <Button
