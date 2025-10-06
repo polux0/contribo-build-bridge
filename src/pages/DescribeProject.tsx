@@ -11,80 +11,66 @@ import { planFromInput, type Milestone, type IntentType } from "@/ai/milestones"
 
 const steps = [
   { number: 1, label: "Describe", sublabel: "Need" },
-  { number: 2, label: "Inputs &", sublabel: "Context" },
-  { number: 3, label: "Reward &", sublabel: "Timeline" },
-  { number: 4, label: "Preview &", sublabel: "Publish" }
+  { number: 2, label: "Context", sublabel: "Inputs" },
+  { number: 3, label: "Rewards", sublabel: "Timeline" },
+  { number: 4, label: "Preview", sublabel: "Publish" }
 ];
 
 const DescribeProject = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [description, setDescription] = useState(""); // Start with empty string
-  const [milestones, setMilestones] = useState("");
+  
+  const [description, setDescription] = useState("");
+  const [milestoneList, setMilestoneList] = useState<Milestone[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [milestoneList, setMilestoneList] = useState<any[]>([]);
-  const [detectedIntent, setDetectedIntent] = useState<IntentType | null>(null);
   const [isTyping, setIsTyping] = useState(false);
-  const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [detectedIntent, setDetectedIntent] = useState<IntentType | null>(null);
   const [lastGeneratedDescription, setLastGeneratedDescription] = useState("");
-  
-  // Add state for total budget and timeline
-  const [totalBudget, setTotalBudget] = useState<string>("");
-  const [totalTimeline, setTotalTimeline] = useState<string>("");
-  const [selectedCurrency, setSelectedCurrency] = useState<string>("USDC");
-  
+  const [totalBudget, setTotalBudget] = useState("");
+  const [totalTimeline, setTotalTimeline] = useState("");
+  const [selectedCurrency, setSelectedCurrency] = useState("USDC");
+
+  // Check if user is coming back from a later step
   useEffect(() => {
-    // Initialize with data from previous step
-    if (location.state?.description) {
-      setDescription(location.state.description);
-      if (location.state.milestones) {
-        setMilestones(location.state.milestones);
-      } else {
-        generateMilestones(location.state.description);
-      }
-    } else if (location.state?.template) {
-      const templateDesc = `Implement ${location.state.template.title}`;
-      setDescription(templateDesc);
-      generateMilestones(templateDesc);
+    if (location.state?.milestoneList && location.state.milestoneList.length > 0) {
+      setMilestoneList(location.state.milestoneList);
+      setDescription(location.state.description || "");
+      setTotalBudget(location.state.totalBudget || "");
+      setTotalTimeline(location.state.totalTimeline || "");
+      setSelectedCurrency(location.state.selectedCurrency || "USDC");
+      setDetectedIntent(location.state.detectedIntent);
     }
-    // Remove the else clause that auto-generates milestones on initial load
   }, [location.state]);
 
-  // Enhanced debounced milestone generation with better typing detection
+  // Debounced milestone generation - only when user stops typing
   useEffect(() => {
-    // Don't generate if description is empty
     if (!description.trim()) {
       setMilestoneList([]);
-      setMilestones("");
       setDetectedIntent(null);
-      setIsTyping(false);
       return;
     }
+
+    // Don't generate if user is still typing
+    if (isTyping) return;
     
-    // If description changed, immediately clear old milestones and show typing indicator
-    if (description !== lastGeneratedDescription) {
-      setMilestoneList([]);
-      setMilestones("");
-      setDetectedIntent(null);
-      setIsTyping(true);
-    }
-    
-    // Clear existing timeout
-    if (typingTimeout) {
-      clearTimeout(typingTimeout);
-    }
-    
-    // Set new timeout - wait for user to stop typing
-    const newTimeout = setTimeout(() => {
-      setIsTyping(false);
+    // Don't generate if we already have milestones for this description
+    if (lastGeneratedDescription === description && milestoneList.length > 0) return;
+
+    const timeoutId = setTimeout(() => {
       generateMilestones(description);
     }, 1500); // Wait 1.5 seconds after user stops typing
-    
-    setTypingTimeout(newTimeout);
-    
-    return () => {
-      if (newTimeout) clearTimeout(newTimeout);
-    };
+
+    return () => clearTimeout(timeoutId);
+  }, [description, isTyping, lastGeneratedDescription, milestoneList.length]);
+
+  // Track typing state
+  useEffect(() => {
+    setIsTyping(true);
+    const timeoutId = setTimeout(() => {
+      setIsTyping(false);
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
   }, [description]);
 
   const generateMilestones = async (need: string) => {
@@ -107,48 +93,19 @@ const DescribeProject = () => {
         videoDescription: milestone.proof.video_description,
         proof: milestone.proof.pull_request_url,
         timeline: milestone.timeline,
-        budgetEstimate: milestone.payout
+        budgetEstimate: milestone.budget_estimate
       }));
-      
+
       setMilestoneList(formattedMilestones);
-      
-      // Also set the raw milestones text for backward compatibility
-      const milestonesText = JSON.stringify(result.milestones, null, 2);
-      setMilestones(milestonesText);
-      
     } catch (error) {
       console.error("❌ MILESTONE GENERATION FAILED:", error);
-      setMilestones("Failed to generate milestones. Please try again.");
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const handleBack = () => {
-    navigate("/hiring");
-  };
-
-  const handleNext = () => {
-    navigate("/hiring/inputs-context", { 
-      state: { 
-        description: description,
-        milestones: milestones,
-        milestoneList: milestoneList,
-        detectedIntent: detectedIntent,
-        totalBudget: totalBudget,
-        totalTimeline: totalTimeline,
-        selectedCurrency: selectedCurrency
-      } 
-    });
-  };
-
-  const handleInsertSuggestion = () => {
-    console.log("Inserting AI suggestion");
-  };
-
-  const handleAIAction = (action: string) => {
-    // For now, just regenerate milestones with the same description
-    generateMilestones(description);
+  const handleInsertSuggestion = (suggestion: string) => {
+    setDescription(prev => prev + " " + suggestion);
   };
 
   const handleTotalBudgetChange = (budget: string, currency: string) => {
@@ -160,111 +117,104 @@ const DescribeProject = () => {
     setTotalTimeline(timeline);
   };
 
+  const handleBack = () => {
+    navigate("/hiring");
+  };
+
+  const handleNext = () => {
+    // Only show error if user tries to proceed without description
+    if (!description.trim()) {
+      return;
+    }
+    
+    navigate("/hiring/inputs-context", { 
+      state: { 
+        description: description,
+        milestones: JSON.stringify(milestoneList),
+        milestoneList: milestoneList,
+        detectedIntent: detectedIntent,
+        totalBudget: totalBudget,
+        totalTimeline: totalTimeline,
+        selectedCurrency: selectedCurrency
+      } 
+    });
+  };
+
   return (
-    <div className="min-h-screen bg-white font-inter text-contribo-text">
+    <div className="min-h-screen bg-gray-50">
       <Header />
-      
-      <main className="container mx-auto px-4 py-8">
-        <div className="max-w-7xl mx-auto space-y-10">
-          {/* Header */}
-          <Card className="p-6 shadow-card border-border bg-card">
-            <h1 className="text-2xl font-bold text-card-foreground">Create Milestone Project</h1>
-          </Card>
-
-          {/* Progress Stepper */}
-          <div className="px-6">
-            <ProgressStepper steps={steps} currentStep={1} />
-          </div>
-
-          {/* Main Content */}
-          <div className="max-w-4xl mx-auto">
-            <Card className="p-8 shadow-card border-border bg-card">
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <h2 className="text-xl font-semibold text-gray-900">Step 1 · Describe what you need</h2>
-                  <p className="text-sm text-gray-600">
-                    Type a sentence. We'll propose a structured milestone.
-                  </p>
-                  {detectedIntent && (
-                    <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      Detected: {detectedIntent}
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Your description</label>
-                    <Textarea
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      className={`min-h-14 text-base bg-muted border-border resize-none ${
-                        !description.trim() ? 'border-red-300' : ''
-                      }`}
-                      placeholder="Add wallet login and protect routes with SIWE"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Be specific about what you want to build. Include technical requirements, features, and any constraints. The more detail you provide, the better we can match you with the right developers.
-                    </p>
-                    {!description.trim() && (
-                      <p className="text-xs text-red-600">
-                        Please describe what you need before proceeding.
-                      </p>
-                    )}
-                  </div>
-
-                  {/* AI Milestones - Only show when not typing and has content */}
-                  {!isTyping && (milestoneList.length > 0 || isGenerating) && (
-                    <AISuggestionCard
-                      milestones={milestoneList}
-                      isGenerating={isGenerating}
-                      onInsert={handleInsertSuggestion}
-                      onTotalBudgetChange={handleTotalBudgetChange}
-                      onTotalTimelineChange={handleTotalTimelineChange}
-                    />
-                  )}
-
-                  {/* Enhanced typing indicator */}
-                  {isTyping && description.trim() && (
-                    <div className="flex items-center space-x-2 text-sm text-gray-500">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                      <span>Waiting for you to finish typing...</span>
-                    </div>
-                  )}
-
-                  {/* Generating indicator */}
-                  {isGenerating && (
-                    <div className="flex items-center space-x-2 text-sm text-blue-600">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                      <span>Generating milestones...</span>
-                    </div>
-                  )}
-
-                </div>
-
-                {/* Navigation */}
-                <div className="flex justify-between pt-6">
-                  <Button
-                    variant="outline"
-                    onClick={handleBack}
-                    className="px-8 py-2 h-11 font-medium"
-                  >
-                    Back
-                  </Button>
-                  <Button
-                    onClick={handleNext}
-                    disabled={!description.trim()}
-                    className="bg-contribo-black hover:bg-gray-800 text-white font-medium px-12 py-2 h-11 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Next
-                  </Button>
-                </div>
+      <div className="container mx-auto px-4 py-8">
+        <ProgressStepper steps={steps} currentStep={1} />
+        
+        <div className="max-w-4xl mx-auto mt-8">
+          <Card className="p-8">
+            <div className="space-y-6">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                  Describe Your Project
+                </h1>
+                <p className="text-gray-600">
+                  Tell us what you need built. Be as specific as possible about your requirements.
+                </p>
               </div>
-            </Card>
-          </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    What do you need built?
+                  </label>
+                  <Textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="min-h-14 text-base bg-muted border-border resize-none"
+                    placeholder="Add wallet login and protect routes with SIWE"
+                  />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Be specific about what you want to build. Include technical requirements, features, and any constraints. The more detail you provide, the better we can match you with the right developers.
+                  </p>
+                </div>
+
+                {/* AI Milestones - Only show when not typing and has content */}
+                {!isTyping && (milestoneList.length > 0 || isGenerating) && (
+                  <AISuggestionCard
+                    milestones={milestoneList}
+                    isGenerating={isGenerating}
+                    onInsert={handleInsertSuggestion}
+                    onTotalBudgetChange={handleTotalBudgetChange}
+                    onTotalTimelineChange={handleTotalTimelineChange}
+                  />
+                )}
+
+                {/* Enhanced typing indicator */}
+                {isTyping && description.trim() && (
+                  <div className="flex items-center space-x-2 text-sm text-gray-500">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    </div>
+                    <span>Analyzing your requirements...</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-between pt-6">
+                <Button variant="outline" onClick={handleBack}>
+                  Back
+                </Button>
+                <Button 
+                  onClick={handleNext}
+                  disabled={!description.trim()}
+                  variant="default"
+                  className="bg-black hover:bg-gray-800 text-white"
+                >
+                  Next: Context & Inputs
+                </Button>
+              </div>
+            </div>
+          </Card>
         </div>
-      </main>
-      
+      </div>
       <Footer />
     </div>
   );

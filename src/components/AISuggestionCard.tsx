@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -18,9 +17,9 @@ interface Milestone {
 }
 
 interface AISuggestionCardProps {
-  milestones: string | any[];
+  milestones: Milestone[];
   isGenerating: boolean;
-  onInsert?: () => void;
+  onInsert?: (suggestion: string) => void;
   onTotalBudgetChange?: (budget: string, currency: string) => void;
   onTotalTimelineChange?: (timeline: string) => void;
 }
@@ -28,43 +27,19 @@ interface AISuggestionCardProps {
 const AISuggestionCard = ({ 
   milestones, 
   isGenerating, 
-  onInsert, 
-  onTotalBudgetChange, 
+  onInsert,
+  onTotalBudgetChange,
   onTotalTimelineChange 
 }: AISuggestionCardProps) => {
   const [milestoneList, setMilestoneList] = useState<Milestone[]>([]);
+  const [totalBudget, setTotalBudget] = useState("");
+  const [totalTimeline, setTotalTimeline] = useState("");
+  const [selectedCurrency, setSelectedCurrency] = useState("USDC");
   const [newMilestoneIds, setNewMilestoneIds] = useState<Set<string>>(new Set());
-  const [totalTimeline, setTotalTimeline] = useState<string>("");
-  const [totalBudget, setTotalBudget] = useState<string>("");
-  const [selectedCurrency, setSelectedCurrency] = useState<string>("USDC");
 
-  // Process milestones with useMemo to prevent infinite loops
+  // Process milestones when they change
   const processedMilestones = useMemo(() => {
-    if (isGenerating) {
-      return [];
-    }
-
-    if (!milestones) {
-      return [];
-    }
-
-    // Handle both string and array inputs
-    let milestonesToProcess;
-    if (typeof milestones === 'string') {
-      try {
-        milestonesToProcess = JSON.parse(milestones);
-      } catch (error) {
-        console.error("❌ Failed to parse milestones string:", error);
-        return [];
-      }
-    } else if (Array.isArray(milestones)) {
-      milestonesToProcess = milestones;
-    } else {
-      console.error("❌ Invalid milestones format:", typeof milestones);
-      return [];
-    }
-
-    if (Array.isArray(milestonesToProcess) && milestonesToProcess.length > 0) {
+    if (Array.isArray(milestones) && milestones.length > 0) {
       const looksLikeMilestone = (entry: any): entry is Milestone =>
         entry &&
         typeof entry === 'object' &&
@@ -73,79 +48,48 @@ const AISuggestionCard = ({
         'videoDescription' in entry &&
         'budgetEstimate' in entry;
 
-      if (looksLikeMilestone(milestonesToProcess[0])) {
-        return milestonesToProcess as Milestone[];
+      if (looksLikeMilestone(milestones[0])) {
+        return milestones as Milestone[];
       }
-
-      const formattedMilestones: Milestone[] = milestonesToProcess.map((milestone, index) => ({
-        id: `milestone-${index + 1}`,
-        title: milestone.title || '',
-        outcome: milestone.outcome || '',
-        video: '',
-        videoDescription: milestone.proof?.video_description || '',
-        proof: milestone.proof?.pull_request_url || '',
-        timeline: milestone.timeline || '',
-        budgetEstimate: milestone.payout || ''
-      }));
-
-      return formattedMilestones;
     }
-    
     return [];
-  }, [milestones, isGenerating]);
+  }, [milestones]);
 
-  // Update milestoneList when processedMilestones changes
+  // Update local state when processed milestones change
   useEffect(() => {
-    setMilestoneList(processedMilestones);
-    
-    // Calculate totals when milestones change
     if (processedMilestones.length > 0) {
-      const totalDays = processedMilestones.reduce((total, milestone) => {
-        const timeline = milestone.timeline.replace(/\*\*/g, '');
-        const days = parseInt(timeline.match(/\d+/)?.[0] || '0');
-        return total + days;
-      }, 0);
-      
-      const totalAmount = processedMilestones.reduce((total, milestone) => {
-        const budget = milestone.budgetEstimate.replace(/\*\*/g, '');
-        const amount = parseInt(budget.match(/\d+/)?.[0] || '0');
-        return total + amount;
-      }, 0);
-      
-      setTotalTimeline(`${totalDays}`);
-      setTotalBudget(`${totalAmount}`);
-    } else {
-      setTotalTimeline("");
-      setTotalBudget("");
+      setMilestoneList(processedMilestones);
     }
   }, [processedMilestones]);
 
   const handleUpdateMilestone = (updatedMilestone: Milestone) => {
     setMilestoneList(prev => 
-      prev.map(m => m.id === updatedMilestone.id ? updatedMilestone : m)
+      prev.map(milestone => 
+        milestone.id === updatedMilestone.id ? updatedMilestone : milestone
+      )
     );
-    setNewMilestoneIds(prev => {
-      const newSet = new Set(prev);
-      newSet.delete(updatedMilestone.id);
-      return newSet;
-    });
   };
 
   const handleDeleteMilestone = (id: string) => {
-    setMilestoneList(prev => prev.filter(m => m.id !== id));
+    setMilestoneList(prev => prev.filter(milestone => milestone.id !== id));
+    setNewMilestoneIds(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(id);
+      return newSet;
+    });
   };
 
   const handleAddMilestone = () => {
     const newId = `milestone-${Date.now()}`;
     const newMilestone: Milestone = {
       id: newId,
-      title: 'New Milestone',
-      outcome: '',
-      video: '',
-      videoDescription: '',
-      proof: '',
-      timeline: '',
-      budgetEstimate: ''
+      title: "New Milestone",
+      outcome: "",
+      video: "",
+      videoDescription: "",
+      proof: "",
+      timeline: "",
+      budgetEstimate: ""
     };
     setMilestoneList(prev => [...prev, newMilestone]);
     setNewMilestoneIds(prev => new Set([...prev, newId]));
@@ -172,94 +116,102 @@ const AISuggestionCard = ({
     }
   };
 
+  // Simplified currency options - only USDC and USDT
   const currencies = [
     { value: "USDC", label: "USDC" },
-    { value: "USDT", label: "USDT" },
-    { value: "ETH", label: "ETH" },
-    { value: "BTC", label: "BTC" },
-    { value: "USD", label: "USD" },
-    { value: "EUR", label: "EUR" }
+    { value: "USDT", label: "USDT" }
   ];
 
   return (
-    <Card className="p-4 border shadow-sm bg-card">
-      <div className="space-y-4">
-        <div>
-          <h3 className="text-sm font-bold text-card-foreground">Project Milestones</h3>
-        </div>
-        
-        {isGenerating ? (
-          <p className="text-xs text-muted-foreground">Generating milestones...</p>
-        ) : milestoneList.length > 0 ? (
-          <div className="space-y-3">
-            {milestoneList.map((milestone) => (
-              <MilestoneCard
-                key={milestone.id}
-                milestone={milestone}
-                onUpdate={handleUpdateMilestone}
-                onDelete={handleDeleteMilestone}
-                isNew={newMilestoneIds.has(milestone.id)}
-              />
-            ))}
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleAddMilestone}
-              className="h-7 px-3 text-xs w-full"
-            >
-              <Plus className="h-3 w-3 mr-1" />
-              Add Milestone
-            </Button>
-            
-            {/* Total Estimate */}
-            {milestoneList.length > 0 && (
-              <div className="mt-4 p-3 bg-gray-50 rounded-lg border">
-                <h4 className="text-sm font-semibold text-gray-900 mb-2">Total Estimate</h4>
-                <div className="flex justify-center gap-6 text-sm">
-                  <div className="text-center">
-                    <span className="font-medium text-gray-600">Total Timeline:</span>
-                    <div className="flex items-center gap-1 mt-1">
-                      <Input
-                        value={totalTimeline}
-                        onChange={(e) => handleTimelineChange(e.target.value)}
-                        className="text-sm w-20 text-center h-8"
-                        placeholder="30"
-                      />
-                      <span className="text-sm text-gray-500">days</span>
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <span className="font-medium text-gray-600">Total Budget:</span>
-                    <div className="flex items-center gap-1 mt-1">
-                      <Input
-                        value={totalBudget}
-                        onChange={(e) => handleBudgetChange(e.target.value)}
-                        className="text-sm w-20 text-center h-8"
-                        placeholder="5000"
-                      />
-                      <Select value={selectedCurrency} onValueChange={handleCurrencyChange}>
-                        <SelectTrigger className="w-16 h-8 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {currencies.map((currency) => (
-                            <SelectItem key={currency.value} value={currency.value}>
-                              {currency.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          <p className="text-xs text-muted-foreground">No milestones generated yet</p>
-        )}
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h3 className="text-lg font-bold text-gray-900">Project Milestones</h3>
       </div>
-    </Card>
+      
+      {/* Milestones List */}
+      {isGenerating ? (
+        <div className="flex items-center justify-center py-8">
+          <div className="flex items-center space-x-2 text-gray-500">
+            <div className="flex space-x-1">
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            </div>
+            <span>Generating milestones...</span>
+          </div>
+        </div>
+      ) : milestoneList.length > 0 ? (
+        <div className="space-y-4">
+          {milestoneList.map((milestone) => (
+            <MilestoneCard
+              key={milestone.id}
+              milestone={milestone}
+              onUpdate={handleUpdateMilestone}
+              onDelete={handleDeleteMilestone}
+              isNew={newMilestoneIds.has(milestone.id)}
+            />
+          ))}
+        </div>
+      ) : null}
+
+      {/* Total Budget and Timeline Controls - Moved to appear right after milestone cards */}
+      {milestoneList.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Total Timeline</label>
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                value={totalTimeline}
+                onChange={(e) => handleTimelineChange(e.target.value)}
+                placeholder="30"
+                className="flex-1"
+              />
+              <span className="text-sm text-gray-500">days</span>
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Total Budget</label>
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                value={totalBudget}
+                onChange={(e) => handleBudgetChange(e.target.value)}
+                placeholder="5000"
+                className="flex-1"
+              />
+              <Select value={selectedCurrency} onValueChange={handleCurrencyChange}>
+                <SelectTrigger className="w-20">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {currencies.map((currency) => (
+                    <SelectItem key={currency.value} value={currency.value}>
+                      {currency.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Milestone Button - Moved to be right below milestone cards */}
+      <div className="flex justify-end">
+        <Button 
+          onClick={handleAddMilestone}
+          variant="outline" 
+          size="sm"
+          className="flex items-center gap-2"
+        >
+          <Plus className="h-4 w-4" />
+          Add Milestone
+        </Button>
+      </div>
+    </div>
   );
 };
 
