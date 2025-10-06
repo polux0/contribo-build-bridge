@@ -7,12 +7,11 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProgressStepper from "@/components/ProgressStepper";
 import AISuggestionCard from "@/components/AISuggestionCard";
-import { generatePlainMilestones } from "@/utils/aiSuggestions";
+import { planFromInput, type Milestone, type IntentType } from "@/ai/milestones";
 
 const steps = [
   { number: 1, label: "Describe", sublabel: "Need" },
   { number: 2, label: "Inputs &", sublabel: "Context" },
-  // { number: 3, label: "Acceptance", sublabel: "Criteria" }, // Commented out for organizations outsourcing
   { number: 3, label: "Reward &", sublabel: "Timeline" },
   { number: 4, label: "Preview &", sublabel: "Publish" }
 ];
@@ -24,12 +23,15 @@ const DescribeProject = () => {
   const [milestones, setMilestones] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [milestoneList, setMilestoneList] = useState<any[]>([]);
+  const [detectedIntent, setDetectedIntent] = useState<IntentType | null>(null);
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [lastGeneratedDescription, setLastGeneratedDescription] = useState("");
   
   useEffect(() => {
     // Initialize with data from previous step
     if (location.state?.description) {
       setDescription(location.state.description);
-      // If we have cached milestones, use them instead of regenerating
       if (location.state.milestones) {
         setMilestones(location.state.milestones);
       } else {
@@ -45,26 +47,74 @@ const DescribeProject = () => {
     }
   }, [location.state]);
 
-  // Debounced milestone generation - only generate after user stops typing
+  // Improved debounced milestone generation with immediate clearing
   useEffect(() => {
-    if (!description.trim()) return;
+    if (!description.trim()) {
+      setMilestoneList([]);
+      setMilestones("");
+      setDetectedIntent(null);
+      return;
+    }
     
-    const timeoutId = setTimeout(() => {
+    // If description changed, immediately clear old milestones
+    if (description !== lastGeneratedDescription) {
+      setMilestoneList([]);
+      setMilestones("");
+      setDetectedIntent(null);
+    }
+    
+    // Clear existing timeout
+    if (typingTimeout) {
+      clearTimeout(typingTimeout);
+    }
+    
+    // Set typing state
+    setIsTyping(true);
+    
+    // Set new timeout
+    const newTimeout = setTimeout(() => {
+      setIsTyping(false);
       generateMilestones(description);
-    }, 1500); // Wait 1.5 seconds after user stops typing
+    }, 2000); // Wait 2 seconds after user stops typing
     
-    return () => clearTimeout(timeoutId);
+    setTypingTimeout(newTimeout);
+    
+    return () => {
+      if (newTimeout) clearTimeout(newTimeout);
+    };
   }, [description]);
 
   const generateMilestones = async (need: string) => {
     if (!need.trim()) return;
     
     setIsGenerating(true);
+    
     try {
-      const result = await generatePlainMilestones(need);
-      setMilestones(result);
+      const result = await planFromInput(need);
+      
+      setDetectedIntent(result.intent);
+      setLastGeneratedDescription(need);
+      
+      // Convert the structured milestones to the format expected by AISuggestionCard
+      const formattedMilestones = result.milestones.map((milestone, index) => ({
+        id: `milestone-${index + 1}`,
+        title: milestone.title,
+        outcome: milestone.outcome,
+        video: '', // Not used in new schema
+        videoDescription: milestone.proof.video_description,
+        proof: milestone.proof.pull_request_url,
+        timeline: milestone.timeline,
+        budgetEstimate: milestone.payout
+      }));
+      
+      setMilestoneList(formattedMilestones);
+      
+      // Also set the raw milestones text for backward compatibility
+      const milestonesText = JSON.stringify(result.milestones, null, 2);
+      setMilestones(milestonesText);
+      
     } catch (error) {
-      console.error("Failed to generate milestones:", error);
+      console.error("❌ MILESTONE GENERATION FAILED:", error);
       setMilestones("Failed to generate milestones. Please try again.");
     } finally {
       setIsGenerating(false);
@@ -75,16 +125,13 @@ const DescribeProject = () => {
     navigate("/hiring");
   };
 
-  const handleMilestonesChange = (milestones: any[]) => {
-    setMilestoneList(milestones);
-  };
-
   const handleNext = () => {
     navigate("/hiring/inputs-context", { 
       state: { 
         description: description,
         milestones: milestones,
-        milestoneList: milestoneList
+        milestoneList: milestoneList,
+        detectedIntent: detectedIntent
       } 
     });
   };
@@ -123,6 +170,11 @@ const DescribeProject = () => {
                   <p className="text-sm text-gray-600">
                     Type a sentence. We'll propose a structured milestone.
                   </p>
+                  {detectedIntent && (
+                    <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      Detected: {detectedIntent}
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-4">
@@ -146,13 +198,22 @@ const DescribeProject = () => {
                     )}
                   </div>
 
-                  {/* AI Milestones */}
-                  <AISuggestionCard 
-                    milestones={milestones}
-                    isGenerating={isGenerating}
-                    onInsert={handleInsertSuggestion}
-                    onMilestonesChange={handleMilestonesChange}
-                  />
+                  {/* AI Milestones - Only show when not typing and has content */}
+                  {!isTyping && (milestoneList.length > 0 || isGenerating) && (
+                    <AISuggestionCard
+                      milestones={milestoneList}
+                      isGenerating={isGenerating}
+                      onInsert={handleInsertSuggestion}
+                    />
+                  )}
+
+                  {/* Typing indicator */}
+                  {isTyping && description.trim() && (
+                    <div className="flex items-center space-x-2 text-sm text-gray-500">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                      <span>Generating milestones...</span>
+                    </div>
+                  )}
 
                 </div>
 

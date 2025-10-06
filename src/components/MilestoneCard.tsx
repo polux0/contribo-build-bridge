@@ -14,7 +14,7 @@ interface Milestone {
   videoDescription: string;
   proof: string;
   timeline: string;
-  payout: string;
+  budgetEstimate: string;
 }
 
 interface MilestoneCardProps {
@@ -188,35 +188,6 @@ const MilestoneCard = ({ milestone, onUpdate, onDelete, isNew = false }: Milesto
               )}
             </div>
 
-            {/* Timeline and Payout */}
-            <div className="flex justify-center gap-6 pt-2">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-gray-900">Timeline:</span>
-                {isEditing ? (
-                  <Input
-                    value={editedMilestone.timeline.replace(/\*\*/g, '')}
-                    onChange={(e) => setEditedMilestone({ ...editedMilestone, timeline: e.target.value })}
-                    className="text-sm w-20"
-                    placeholder="10 days"
-                  />
-                ) : (
-                  <span className="text-sm text-gray-700">{milestone.timeline.replace(/\*\*/g, '')}</span>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-gray-900">Payout:</span>
-                {isEditing ? (
-                  <Input
-                    value={editedMilestone.payout.replace(/\*\*/g, '')}
-                    onChange={(e) => setEditedMilestone({ ...editedMilestone, payout: e.target.value })}
-                    className="text-sm w-20"
-                    placeholder="25%"
-                  />
-                ) : (
-                  <span className="text-sm text-gray-700">{milestone.payout.replace(/\*\*/g, '')}</span>
-                )}
-              </div>
-            </div>
           </div>
         </div>
       </div>

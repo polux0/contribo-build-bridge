@@ -1,6 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import MilestoneCard from "./MilestoneCard";
 import { Plus } from "lucide-react";
 
@@ -12,138 +14,108 @@ interface Milestone {
   videoDescription: string;
   proof: string;
   timeline: string;
-  payout: string;
+  budgetEstimate: string;
 }
 
 interface AISuggestionCardProps {
-  milestones: string;
+  milestones: string | any[];
   isGenerating: boolean;
-  onInsert: () => void;
-  onMilestonesChange?: (milestones: Milestone[]) => void;
+  onInsert?: () => void;
 }
 
-const AISuggestionCard = ({ milestones, isGenerating, onInsert, onMilestonesChange }: AISuggestionCardProps) => {
+const AISuggestionCard = ({ milestones, isGenerating, onInsert }: AISuggestionCardProps) => {
   const [milestoneList, setMilestoneList] = useState<Milestone[]>([]);
   const [newMilestoneIds, setNewMilestoneIds] = useState<Set<string>>(new Set());
+  const [totalTimeline, setTotalTimeline] = useState<string>("");
+  const [totalBudget, setTotalBudget] = useState<string>("");
+  const [selectedCurrency, setSelectedCurrency] = useState<string>("USDC");
 
-  // Parse milestones from AI JSON response into structured format
-  const parseMilestones = (text: string): Milestone[] => {
-    if (!text || typeof text !== 'string') return [];
-    
-    try {
-      // Try to parse as JSON first
-      const jsonData = JSON.parse(text);
-      if (Array.isArray(jsonData)) {
-        return jsonData.map((milestone, index) => {
-          let video = '';
-          let videoDescription = '';
-          let proof = '';
-          
-          if (typeof milestone.proof === 'object') {
-            video = milestone.proof.video_url || '';
-            videoDescription = milestone.proof.video_description || '';
-            
-            const proofParts = [];
-            if (milestone.proof.pull_request_url) {
-              proofParts.push(milestone.proof.pull_request_url);
-            }
-            if (milestone.proof.extra_link) {
-              proofParts.push(milestone.proof.extra_link);
-            }
-            proof = proofParts.join(', ');
-          } else {
-            proof = milestone.proof || '';
-          }
-          
-          return {
-            id: `milestone-${index + 1}`,
-            title: milestone.title || '',
-            outcome: milestone.outcome || '',
-            video: video,
-            videoDescription: videoDescription,
-            proof: proof,
-            timeline: milestone.timeline || '',
-            payout: milestone.payout || ''
-          };
-        });
-      }
-    } catch (error) {
-      console.log('Failed to parse JSON, falling back to text parsing:', error);
+  // Process milestones with useMemo to prevent infinite loops
+  const processedMilestones = useMemo(() => {
+    if (isGenerating) {
+      return [];
     }
-    
-    // Fallback to text parsing if JSON fails
-    const lines = text.split('\n').filter(line => line.trim());
-    const milestones: Milestone[] = [];
-    let currentMilestone: Partial<Milestone> = {};
-    
-    lines.forEach((line, index) => {
-      const trimmed = line.trim();
-      
-      // Check if this is a numbered milestone start
-      if (/^\d+\./.test(trimmed)) {
-        if (currentMilestone.title || currentMilestone.outcome) {
-          milestones.push(currentMilestone as Milestone);
-        }
-        // Extract title content and remove "Title:" prefix if present
-        const content = trimmed.replace(/^\d+\.\s*/, '');
-        const title = content.replace(/^title:\s*/i, '').trim();
-        currentMilestone = {
-          id: `milestone-${milestones.length + 1}`,
-          title: title,
-          outcome: '',
-          video: '',
-          videoDescription: '',
-          proof: '',
-          timeline: '',
-          payout: ''
-        };
-      } else if (currentMilestone.title && trimmed) {
-        // Try to parse structured content
-        if (trimmed.toLowerCase().includes('outcome:')) {
-          currentMilestone.outcome = trimmed.replace(/outcome:\s*/i, '');
-        } else if (trimmed.toLowerCase().includes('video:')) {
-          currentMilestone.video = trimmed.replace(/video:\s*/i, '');
-        } else if (trimmed.toLowerCase().includes('video description:')) {
-          currentMilestone.videoDescription = trimmed.replace(/video description:\s*/i, '');
-        } else if (trimmed.toLowerCase().includes('proof:')) {
-          currentMilestone.proof = trimmed.replace(/proof:\s*/i, '');
-        } else if (trimmed.toLowerCase().includes('timeline:')) {
-          currentMilestone.timeline = trimmed.replace(/timeline:\s*/i, '');
-        } else if (trimmed.toLowerCase().includes('payout:')) {
-          currentMilestone.payout = trimmed.replace(/payout:\s*/i, '');
-        } else if (!currentMilestone.outcome) {
-          currentMilestone.outcome = trimmed;
-        }
-      }
-    });
-    
-    if (currentMilestone.title) {
-      milestones.push(currentMilestone as Milestone);
-    }
-    
-    return milestones;
-  };
 
-  // Update milestone list when AI text changes
-  useEffect(() => {
-    if (milestones && !isGenerating) {
-      const parsed = parseMilestones(milestones);
-      setMilestoneList(parsed);
+    if (!milestones) {
+      return [];
     }
+
+    // Handle both string and array inputs
+    let milestonesToProcess;
+    if (typeof milestones === 'string') {
+      try {
+        milestonesToProcess = JSON.parse(milestones);
+      } catch (error) {
+        console.error("❌ Failed to parse milestones string:", error);
+        return [];
+      }
+    } else if (Array.isArray(milestones)) {
+      milestonesToProcess = milestones;
+    } else {
+      console.error("❌ Invalid milestones format:", typeof milestones);
+      return [];
+    }
+
+    if (Array.isArray(milestonesToProcess) && milestonesToProcess.length > 0) {
+      const looksLikeMilestone = (entry: any): entry is Milestone =>
+        entry &&
+        typeof entry === 'object' &&
+        'id' in entry &&
+        'title' in entry &&
+        'videoDescription' in entry &&
+        'budgetEstimate' in entry;
+
+      if (looksLikeMilestone(milestonesToProcess[0])) {
+        return milestonesToProcess as Milestone[];
+      }
+
+      const formattedMilestones: Milestone[] = milestonesToProcess.map((milestone, index) => ({
+        id: `milestone-${index + 1}`,
+        title: milestone.title || '',
+        outcome: milestone.outcome || '',
+        video: '',
+        videoDescription: milestone.proof?.video_description || '',
+        proof: milestone.proof?.pull_request_url || '',
+        timeline: milestone.timeline || '',
+        budgetEstimate: milestone.payout || ''
+      }));
+
+      return formattedMilestones;
+    }
+    
+    return [];
   }, [milestones, isGenerating]);
 
-  // Notify parent when milestone list changes
+  // Update milestoneList when processedMilestones changes
   useEffect(() => {
-    if (onMilestonesChange) {
-      onMilestonesChange(milestoneList);
+    setMilestoneList(processedMilestones);
+    
+    // Calculate totals when milestones change
+    if (processedMilestones.length > 0) {
+      const totalDays = processedMilestones.reduce((total, milestone) => {
+        const timeline = milestone.timeline.replace(/\*\*/g, '');
+        const days = parseInt(timeline.match(/\d+/)?.[0] || '0');
+        return total + days;
+      }, 0);
+      
+      const totalAmount = processedMilestones.reduce((total, milestone) => {
+        const budget = milestone.budgetEstimate.replace(/\*\*/g, '');
+        const amount = parseInt(budget.match(/\d+/)?.[0] || '0');
+        return total + amount;
+      }, 0);
+      
+      setTotalTimeline(`${totalDays} days`);
+      setTotalBudget(`${totalAmount}`);
+    } else {
+      setTotalTimeline("");
+      setTotalBudget("");
     }
-  }, [milestoneList, onMilestonesChange]);
+  }, [processedMilestones]);
 
   const handleUpdateMilestone = (updatedMilestone: Milestone) => {
     setMilestoneList(prev => 
       prev.map(m => m.id === updatedMilestone.id ? updatedMilestone : m)
     );
-    // Remove from new milestones set once it's been edited
     setNewMilestoneIds(prev => {
       const newSet = new Set(prev);
       newSet.delete(updatedMilestone.id);
@@ -165,11 +137,28 @@ const AISuggestionCard = ({ milestones, isGenerating, onInsert, onMilestonesChan
       videoDescription: '',
       proof: '',
       timeline: '',
-      payout: ''
+      budgetEstimate: ''
     };
     setMilestoneList(prev => [...prev, newMilestone]);
     setNewMilestoneIds(prev => new Set([...prev, newId]));
   };
+
+  const handleTimelineChange = (value: string) => {
+    setTotalTimeline(value);
+  };
+
+  const handleBudgetChange = (value: string) => {
+    setTotalBudget(value);
+  };
+
+  const currencies = [
+    { value: "USDC", label: "USDC" },
+    { value: "USDT", label: "USDT" },
+    { value: "ETH", label: "ETH" },
+    { value: "BTC", label: "BTC" },
+    { value: "USD", label: "USD" },
+    { value: "EUR", label: "EUR" }
+  ];
 
   return (
     <Card className="p-4 border shadow-sm bg-card">
@@ -200,20 +189,50 @@ const AISuggestionCard = ({ milestones, isGenerating, onInsert, onMilestonesChan
               <Plus className="h-3 w-3 mr-1" />
               Add Milestone
             </Button>
+            
+            {/* Total Estimate */}
+            {milestoneList.length > 0 && (
+              <div className="mt-4 p-3 bg-gray-50 rounded-lg border">
+                <h4 className="text-sm font-semibold text-gray-900 mb-2">Total Estimate</h4>
+                <div className="flex justify-center gap-6 text-sm">
+                  <div className="text-center">
+                    <span className="font-medium text-gray-600">Total Timeline:</span>
+                    <Input
+                      value={totalTimeline}
+                      onChange={(e) => handleTimelineChange(e.target.value)}
+                      className="text-sm w-32 text-center mt-1"
+                      placeholder="e.g., 30 days"
+                    />
+                  </div>
+                  <div className="text-center">
+                    <span className="font-medium text-gray-600">Total Budget:</span>
+                    <div className="flex items-center gap-1 mt-1">
+                      <Input
+                        value={totalBudget}
+                        onChange={(e) => handleBudgetChange(e.target.value)}
+                        className="text-sm w-20 text-center"
+                        placeholder="e.g., 5000"
+                      />
+                      <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
+                        <SelectTrigger className="w-16 h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {currencies.map((currency) => (
+                            <SelectItem key={currency.value} value={currency.value}>
+                              {currency.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
-          <div className="space-y-3">
-            <p className="text-xs text-muted-foreground">No milestones generated yet</p>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleAddMilestone}
-              className="h-7 px-3 text-xs w-full"
-            >
-              <Plus className="h-3 w-3 mr-1" />
-              Add Milestone
-            </Button>
-          </div>
+          <p className="text-xs text-muted-foreground">No milestones generated yet</p>
         )}
       </div>
     </Card>

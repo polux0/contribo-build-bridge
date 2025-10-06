@@ -1,0 +1,725 @@
+Comparison overview
+Type  Version # Milestones  Notes
+Feature Golden  3 Short, on-chain + Safe scheduling
+  Iteration 1 7 Generic app logic; still solid
+  Iteration 2 6 On-chain restored; concise CI→rollout
+PRD Golden  4 Core flows + Bridge/Persona/KYC
+  Iteration 1 7 Good coverage; missed AA wallet/NFR
+  Iteration 2 9 Full coverage; add AA wallet to hit parity
+Problem Golden  5 Taxonomy → router → repair → sandbox → canary
+  Iteration 1 6 Close to golden; adds eval suite explicitly
+  Iteration 2 — (not run; optional)
+Idea  Golden  4 Concept → proto → contrib → pilot
+  Iteration 1 4 Narrow; vision collapsed
+  Iteration 2 7 Vision depth restored (discovery, comms, rewards)
+JSONs (verbatim)
+1) Feature — Golden (manual)
+{
+  "type": "Feature",
+  "input": "We need to distribute rewards automatically at the end of each sprint.",
+  "milestones": [
+    {
+      "title": "Define Reward Policy & Snapshot Logic",
+      "outcome": "Approved policy describing eligibility, weighting, and payout snapshot timing.",
+      "proof": {
+        "video_description": "2-min walkthrough explaining rules and sample payout calculation.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/1"
+      },
+      "timeline": "3–5 days",
+      "payout": "400 USDC + 200 Team Points"
+    },
+    {
+      "title": "Implement On-Chain Payout Contract",
+      "outcome": "Smart contract that performs batch token distributions with event logs and double-claim prevention.",
+      "proof": {
+        "video_description": "Demo of contract tests and sample distribution transaction.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/2"
+      },
+      "timeline": "4–6 days",
+      "payout": "900 USDC + 400 Team Points"
+    },
+    {
+      "title": "Scheduler & Safe Integration",
+      "outcome": "Backend cron job triggering payout contract from DAO Safe at sprint end.",
+      "proof": {
+        "video_description": "End-to-end run showing Safe approval and payout event logs.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/3"
+      },
+      "timeline": "3–4 days",
+      "payout": "700 USDC + 300 Team Points"
+    }
+  ]
+}
+
+1) Feature — Iteration 1 (your run)
+{
+  "type": "Feature",
+  "input": "We need to distribute rewards automatically at the end of each sprint.",
+  "milestones": [
+    {
+      "title": "Draft Reward Distribution Policy",
+      "outcome": "A clear and comprehensive policy for automatic reward distribution at the end of each sprint.",
+      "proof": {
+        "video_description": "Overview of the drafted policy document and its key points.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/1"
+      },
+      "timeline": "5–7 days",
+      "payout": "500 USDC + 200 Team Points"
+    },
+    {
+      "title": "Implement Reward Distribution Logic",
+      "outcome": "A working vertical slice of the reward distribution feature integrated into the existing system.",
+      "proof": {
+        "video_description": "Demo of the reward distribution feature in action during a sprint.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/2"
+      },
+      "timeline": "7–10 days",
+      "payout": "700 USDC + 300 Team Points"
+    },
+    {
+      "title": "Create Unit and Integration Tests",
+      "outcome": "A comprehensive suite of tests ensuring the reward distribution logic works as intended.",
+      "proof": {
+        "video_description": "Walkthrough of the test cases and their execution results.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/3"
+      },
+      "timeline": "4–6 days",
+      "payout": "400 USDC + 150 Team Points"
+    },
+    {
+      "title": "Document Reward Distribution Feature",
+      "outcome": "Complete documentation for the reward distribution feature, including usage and configuration.",
+      "proof": {
+        "video_description": "Presentation of the documentation and its structure.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/4"
+      },
+      "timeline": "3–5 days",
+      "payout": "300 USDC + 100 Team Points"
+    },
+    {
+      "title": "Integrate Reward Distribution with CI",
+      "outcome": "Continuous integration setup to ensure the reward distribution feature is tested on every commit.",
+      "proof": {
+        "video_description": "Demonstration of the CI pipeline running tests for the reward distribution feature.",
+      "pull_request_url": "https://github.com/<org>/<repo>/pull/5"
+      },
+      "timeline": "2–4 days",
+      "payout": "500 USDC + 200 Team Points"
+    },
+    {
+      "title": "Conduct End-to-End Testing",
+      "outcome": "Successful end-to-end tests confirming the reward distribution feature works in a production-like environment.",
+      "proof": {
+        "video_description": "Summary of the E2E tests conducted and their outcomes.",
+        "pull_request_url": "N/A"
+      },
+      "timeline": "5–7 days",
+      "payout": "600 USDC + 250 Team Points"
+    },
+    {
+      "title": "Rollout Reward Distribution Feature",
+      "outcome": "The reward distribution feature is live and operational for all users at the end of each sprint.",
+      "proof": {
+        "video_description": "Live demonstration of the feature being used in a real sprint.",
+        "pull_request_url": "N/A"
+      },
+      "timeline": "1–2 days",
+      "payout": "800 USDC + 300 Team Points"
+    }
+  ]
+}
+
+1) Feature — Iteration 2 (your run)
+{
+  "type": "Feature",
+  "input": "We need to distribute rewards automatically at the end of each sprint.",
+  "milestones": [
+    {
+      "title": "Define Reward Distribution Policy",
+      "outcome": "A clear and documented policy for reward distribution at the end of each sprint.",
+      "proof": {
+        "video_description": "Overview of the reward distribution policy and its components.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/1"
+      },
+      "timeline": "2–4 days",
+      "payout": "500 USDC + 200 Team Points"
+    },
+    {
+      "title": "Implement Reward Distribution Smart Contract",
+      "outcome": "A smart contract that automates the reward distribution process.",
+      "proof": {
+        "video_description": "Demonstration of the smart contract functionality and reward distribution.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/2"
+      },
+      "timeline": "5–7 days",
+      "payout": "800 USDC + 300 Team Points"
+    },
+    {
+      "title": "Develop Unit Tests for Smart Contract",
+      "outcome": "Comprehensive unit tests ensuring the smart contract functions correctly.",
+      "proof": {
+        "video_description": "Walkthrough of the unit tests and their results.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/3"
+      },
+      "timeline": "3–5 days",
+      "payout": "400 USDC + 150 Team Points"
+    },
+    {
+      "title": "Create Documentation for Reward System",
+      "outcome": "User-friendly documentation detailing how the reward system works.",
+      "proof": {
+        "video_description": "Presentation of the documentation and its key sections.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/4"
+      },
+      "timeline": "2–3 days",
+      "payout": "300 USDC + 100 Team Points"
+    },
+    {
+      "title": "Integrate CI for Smart Contract Deployment",
+      "outcome": "Continuous integration setup for automated deployment of the smart contract.",
+      "proof": {
+        "video_description": "Demo of the CI pipeline and deployment process.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/5"
+      },
+      "timeline": "4–6 days",
+      "payout": "600 USDC + 250 Team Points"
+    },
+    {
+      "title": "Rollout Reward Distribution System",
+      "outcome": "Successful deployment of the reward distribution system to production.",
+      "proof": {
+        "video_description": "Final demonstration of the system in action during a sprint.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/6"
+      },
+      "timeline": "1–2 days",
+      "payout": "1000 USDC + 400 Team Points"
+    }
+  ]
+}
+
+2) PRD — Golden (manual)
+{
+  "type": "PRD",
+  "input": "Wallet platform PRD with onboarding, deposits, transfers, withdrawals, KYC, and integrations.",
+  "milestones": [
+    {
+      "title": "MVP Architecture & Wallet Core",
+      "outcome": "Account-abstraction wallet infra with login, signup, and balance endpoints.",
+      "proof": {
+        "video_description": "Demo showing wallet auto-creation and dashboard load time.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/1"
+      },
+      "timeline": "7 days",
+      "payout": "2000 USDC + 1000 Team Points"
+    },
+    {
+      "title": "Bridge.xyz Fiat On/Off-Ramp",
+      "outcome": "Integration for card and bank payments converting fiat → USDC/EURC.",
+      "proof": {
+        "video_description": "Demo of fiat deposit via bridge.xyz sandbox.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/2"
+      },
+      "timeline": "10 days",
+      "payout": "2500 USDC + 1200 Team Points"
+    },
+    {
+      "title": "Transfers, Requests, and Link Previews",
+      "outcome": "Peer-to-peer flows via paytags + shareable links with unfurl previews.",
+      "proof": {
+        "video_description": "Send/request flow shown in WhatsApp and dashboard.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/3"
+      },
+      "timeline": "6 days",
+      "payout": "1800 USDC + 900 Team Points"
+    },
+    {
+      "title": "KYC & Compliance Module",
+      "outcome": "Persona integration with GDPR-safe data handling and verified badge.",
+      "proof": {
+        "video_description": "KYC run through Persona sandbox with success badge.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/4"
+      },
+      "timeline": "4 days",
+      "payout": "900 USDC + 400 Team Points"
+    }
+  ]
+}
+
+2) PRD — Iteration 1 (your run)
+{
+  "type": "PRD",
+  "input": "Full PRD excerpt pasted earlier.",
+  "milestones": [
+    {
+      "title": "Implement User Onboarding Flow",
+      "outcome": "Users can sign up and create a username with an embedded smart wallet.",
+      "proof": {
+        "video_description": "Demo of user onboarding process including sign up and wallet creation.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/1"
+      },
+      "timeline": "5–7 days",
+      "payout": "800 USDC + 200 Team Points"
+    },
+    {
+      "title": "Integrate Fiat and On-Chain Deposit Methods",
+      "outcome": "Users can deposit funds via bank transfer, card, and on-chain methods.",
+      "proof": {
+        "video_description": "Demonstration of deposit methods including bank transfer and on-chain deposits.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/2"
+      },
+      "timeline": "7–10 days",
+      "payout": "1000 USDC + 300 Team Points"
+    },
+    {
+      "title": "Develop Transfer and Request Features",
+      "outcome": "Users can send and request funds using usernames and links.",
+      "proof": {
+        "video_description": "Showcase of sending and requesting funds through the app.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/3"
+      },
+      "timeline": "6–8 days",
+      "payout": "900 USDC + 250 Team Points"
+    },
+    {
+      "title": "Implement Withdrawal Options",
+      "outcome": "Users can withdraw funds to wallets or bank accounts.",
+      "proof": {
+        "video_description": "Walkthrough of the withdrawal process for both on-chain and bank transfers.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/4"
+      },
+      "timeline": "5–7 days",
+      "payout": "850 USDC + 200 Team Points"
+    },
+    {
+      "title": "Set Up KYC Compliance Flow",
+      "outcome": "KYC process is triggered for users during their first fiat transaction.",
+      "proof": {
+        "video_description": "Demonstration of the KYC verification process using Persona.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/5"
+      },
+      "timeline": "4–6 days",
+      "payout": "700 USDC + 150 Team Points"
+    },
+    {
+      "title": "Implement Link Unfurling and Deep Linking",
+      "outcome": "Transfer and request links unfurl correctly in chat apps and deep link to the app.",
+      "proof": {
+        "video_description": "Example of link unfurling in WhatsApp and deep linking behavior.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/6"
+      },
+      "timeline": "6–8 days",
+      "payout": "800 USDC + 200 Team Points"
+    },
+    {
+      "title": "Establish Monitoring and Performance Metrics",
+      "outcome": "System performance metrics and logging are set up for monitoring.",
+      "proof": {
+        "video_description": "Overview of performance metrics and logging setup.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/7"
+      },
+      "timeline": "5–7 days",
+      "payout": "750 USDC + 150 Team Points"
+    }
+  ]
+}
+
+2) PRD — Iteration 2 (your run)
+{
+  "type": "PRD",
+  "input": "Full PRD excerpt pasted earlier.",
+  "milestones": [
+    {
+      "title": "Develop Onboarding Flow",
+      "outcome": "User can successfully create an account and complete onboarding.",
+      "proof": {
+        "video_description": "Demo of the onboarding process including account creation and verification.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/1"
+      },
+      "timeline": "5–7 days",
+      "payout": "800 USDC + 200 Team Points"
+    },
+    {
+      "title": "Implement Deposit Functionality",
+      "outcome": "Users can deposit funds into their accounts seamlessly.",
+      "proof": {
+        "video_description": "Demonstration of the deposit process with various payment methods.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/2"
+      },
+      "timeline": "4–6 days",
+      "payout": "700 USDC + 150 Team Points"
+    },
+    {
+      "title": "Create Transfer Feature",
+      "outcome": "Users can transfer funds between accounts without issues.",
+      "proof": {
+        "video_description": "Showcasing the transfer feature between two user accounts.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/3"
+      },
+      "timeline": "5–7 days",
+      "payout": "750 USDC + 200 Team Points"
+    },
+    {
+      "title": "Build Withdrawal Mechanism",
+      "outcome": "Users can withdraw funds from their accounts successfully.",
+      "proof": {
+        "video_description": "Demo of the withdrawal process and confirmation notifications.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/4"
+      },
+      "timeline": "4–6 days",
+      "payout": "700 USDC + 150 Team Points"
+    },
+    {
+      "title": "Integrate Bridge.xyz for Cross-Chain Transfers",
+      "outcome": "Users can perform cross-chain transfers using Bridge.xyz.",
+      "proof": {
+        "video_description": "Demonstration of cross-chain transfer functionality using Bridge.xyz.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/5"
+      },
+      "timeline": "6–8 days",
+      "payout": "900 USDC + 250 Team Points"
+    },
+    {
+      "title": "Integrate Persona for Identity Verification",
+      "outcome": "User identity verification is completed using Persona.",
+      "proof": {
+        "video_description": "Showcasing the identity verification process with Persona integration.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/6"
+      },
+      "timeline": "5–7 days",
+      "payout": "800 USDC + 200 Team Points"
+    },
+    {
+      "title": "Develop Dashboard/UI Layer",
+      "outcome": "Users have access to a functional and user-friendly dashboard.",
+      "proof": {
+        "video_description": "Demo of the dashboard interface and its features.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/7"
+      },
+      "timeline": "7–10 days",
+      "payout": "1000 USDC + 300 Team Points"
+    },
+    {
+      "title": "Establish Monitoring and Testing Framework",
+      "outcome": "System is monitored effectively with testing protocols in place.",
+      "proof": {
+        "video_description": "Overview of the monitoring tools and testing strategies implemented.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/8"
+      },
+      "timeline": "5–7 days",
+      "payout": "850 USDC + 250 Team Points"
+    },
+    {
+      "title": "Define Non-Functional Requirements",
+      "outcome": "Documented performance, security, scalability, and compliance requirements.",
+      "proof": {
+        "video_description": "Presentation of the non-functional requirements documentation.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/9"
+      },
+      "timeline": "3–5 days",
+      "payout": "600 USDC + 150 Team Points"
+    }
+  ]
+}
+
+3) Problem — Golden (manual)
+{
+  "type": "Problem",
+  "input": "UI commands brittle — small wording breaks flows; want AI auto-repair.",
+  "milestones": [
+    {
+      "title": "Taxonomy & Metrics",
+      "outcome": "Defined taxonomy of command errors and success metrics (accuracy, latency, fallback).",
+      "proof": {
+        "video_description": "Overview of 20 sample failures and their categories.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/1"
+      },
+      "timeline": "3–4 days",
+      "payout": "400 USDC + 150 Team Points"
+    },
+    {
+      "title": "Intent Router with Confidence Scoring",
+      "outcome": "Router classifying intents with calibrated confidence and fallback route.",
+      "proof": {
+        "video_description": "Demo showing confidence histogram and fallback behavior.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/2"
+      },
+      "timeline": "3 days",
+      "payout": "600 USDC + 200 Team Points"
+    },
+    {
+      "title": "Constrained LLM Auto-Repair",
+      "outcome": "LLM prompt rewriting malformed input into valid DSL JSON commands.",
+      "proof": {
+        "video_description": "Show 25 messy inputs converted to valid JSON.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/3"
+      },
+      "timeline": "4 days",
+      "payout": "800 USDC + 300 Team Points"
+    },
+    {
+      "title": "Execution Sandbox & Rollback",
+      "outcome": "Dry-run validation and rollback flow for repaired commands.",
+      "proof": {
+        "video_description": "Demo of blocked dangerous command and rollback.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/4"
+      },
+      "timeline": "3 days",
+      "payout": "700 USDC + 250 Team Points"
+    },
+    {
+      "title": "Canary Release & Telemetry",
+      "outcome": "Gradual rollout with SLO monitoring and incident replay tool.",
+      "proof": {
+        "video_description": "Live metrics dashboard showing repair rate and latency.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/5"
+      },
+      "timeline": "4 days",
+      "payout": "600 USDC + 200 Team Points"
+    }
+  ]
+}
+
+3) Problem — Iteration 1 (your run)
+{
+  "type": "Problem",
+  "input": "Our UI is still brittle; one word breaks commands. Make AI fix them in background.",
+  "milestones": [
+    {
+      "title": "Establish Taxonomy and Measurements",
+      "outcome": "Define clear taxonomy for UI commands and establish metrics for performance and error rates.",
+      "proof": {
+        "video_description": "A walkthrough of the taxonomy and measurement definitions with examples.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/1"
+      },
+      "timeline": "5–7 days",
+      "payout": "500 USDC + 200 Team Points"
+    },
+    {
+      "title": "Implement Normalization and Guardrails",
+      "outcome": "Create normalization rules to handle variations in commands, ensuring consistent behavior.",
+      "proof": {
+        "video_description": "Demo of the normalization process in action with various command inputs.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/2"
+      },
+      "timeline": "7–10 days",
+      "payout": "600 USDC + 250 Team Points"
+    },
+    {
+      "title": "Develop Solution Spikes for AI Fixes",
+      "outcome": "Prototype AI-driven solutions that automatically correct command issues in real-time.",
+      "proof": {
+        "video_description": "Showcase of the AI fixing commands during user interactions.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/3"
+      },
+      "timeline": "10–14 days",
+      "payout": "800 USDC + 300 Team Points"
+    },
+    {
+      "title": "Implement Safety and Rollback Mechanisms",
+      "outcome": "Establish safety measures and rollback options to prevent system failures during command corrections.",
+      "proof": {
+        "video_description": "Overview of safety mechanisms and rollback procedures in the system.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/4"
+      },
+      "timeline": "5–7 days",
+      "payout": "400 USDC + 150 Team Points"
+    },
+    {
+      "title": "Create Evaluation Suite for Command Performance",
+      "outcome": "Build an evaluation suite to test the effectiveness of the AI fixes and normalization.",
+      "proof": {
+        "video_description": "Demonstration of the evaluation suite running tests on command performance.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/5"
+      },
+      "timeline": "7–10 days",
+      "payout": "700 USDC + 250 Team Points"
+    },
+    {
+      "title": "Deploy Canary Release with SLOs",
+      "outcome": "Launch a canary release of the new system with defined Service Level Objectives (SLOs) for monitoring.",
+      "proof": {
+        "video_description": "Live demo of the canary release and monitoring of SLOs in action.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/6"
+      },
+      "timeline": "10–14 days",
+      "payout": "900 USDC + 300 Team Points"
+    }
+  ]
+}
+
+
+(No Iteration 2 provided for Problem yet.)
+
+4) Idea — Golden (manual)
+{
+  "type": "Idea",
+  "input": "Platform that enables people to build software collaboratively.",
+  "milestones": [
+    {
+      "title": "Define Collaboration Model",
+      "outcome": "Concept paper describing roles, ownership, and reward system.",
+      "proof": {
+        "video_description": "Walkthrough of the collaboration model and diagrams.",
+        "pull_request_url": "N/A"
+      },
+      "timeline": "3 days",
+      "payout": "400 USDC + 200 Team Points"
+    },
+    {
+      "title": "Prototype Shared Workspace",
+      "outcome": "Live demo where two users co-edit and commit code in real time.",
+      "proof": {
+        "video_description": "Two users coding together, commits visible instantly.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/1"
+      },
+      "timeline": "7 days",
+      "payout": "1000 USDC + 500 Team Points"
+    },
+    {
+      "title": "Contribution Graph & Proof System",
+      "outcome": "Each contribution logged with verifiable metadata and weighting.",
+      "proof": {
+        "video_description": "Display of contribution graph and proof logs.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/2"
+      },
+      "timeline": "5 days",
+      "payout": "800 USDC + 300 Team Points"
+    },
+    {
+      "title": "Community Pilot & Feedback",
+      "outcome": "Run a public test project with early adopters; collect feedback.",
+      "proof": {
+        "video_description": "Summary of community test and improvements.",
+        "pull_request_url": "N/A"
+      },
+      "timeline": "5 days",
+      "payout": "700 USDC + 250 Team Points"
+    }
+  ]
+}
+
+4) Idea — Iteration 1 (your run)
+{
+  "type": "Idea",
+  "input": "Platform that enables people to build software collaboratively.",
+  "milestones": [
+    {
+      "title": "Define Collaboration Model",
+      "outcome": "Concept paper describing roles, ownership, and reward system.",
+      "proof": {
+        "video_description": "Walkthrough of the collaboration model and diagrams.",
+        "pull_request_url": "N/A"
+      },
+      "timeline": "3 days",
+      "payout": "400 USDC + 200 Team Points"
+    },
+    {
+      "title": "Prototype Shared Workspace",
+      "outcome": "Live demo where two users co-edit and commit code in real time.",
+      "proof": {
+        "video_description": "Two users coding together, commits visible instantly.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/1"
+      },
+      "timeline": "7 days",
+      "payout": "1000 USDC + 500 Team Points"
+    },
+    {
+      "title": "Contribution Graph & Proof System",
+      "outcome": "Each contribution logged with verifiable metadata and weighting.",
+      "proof": {
+        "video_description": "Display of contribution graph and proof logs.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/2"
+      },
+      "timeline": "5 days",
+      "payout": "800 USDC + 300 Team Points"
+    },
+    {
+      "title": "Community Pilot & Feedback",
+      "outcome": "Run a public test project with early adopters; collect feedback.",
+      "proof": {
+        "video_description": "Summary of community test and improvements.",
+        "pull_request_url": "N/A"
+      },
+      "timeline": "5 days",
+      "payout": "700 USDC + 250 Team Points"
+    }
+  ]
+}
+
+4) Idea — Iteration 2 (your run)
+{
+  "type": "Idea",
+  "input": "Platform that enables people to build software collaboratively.",
+  "milestones": [
+    {
+      "title": "Frame the Concept",
+      "outcome": "A clear and documented concept outline for the collaborative platform.",
+      "proof": {
+        "video_description": "A short video explaining the concept and its key features.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/1"
+      },
+      "timeline": "5–7 days",
+      "payout": "500 USDC + 200 Team Points"
+    },
+    {
+      "title": "Develop Collaborative Prototype",
+      "outcome": "A functional prototype demonstrating core collaborative features.",
+      "proof": {
+        "video_description": "Demo of the prototype showcasing user interactions.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/2"
+      },
+      "timeline": "10–14 days",
+      "payout": "1000 USDC + 300 Team Points"
+    },
+    {
+      "title": "Implement Contribution Tracking",
+      "outcome": "A system for tracking contributions and user engagement.",
+      "proof": {
+        "video_description": "Overview of the contribution tracking system in action.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/3"
+      },
+      "timeline": "7–10 days",
+      "payout": "800 USDC + 250 Team Points"
+    },
+    {
+      "title": "Create Discovery/Join Flow",
+      "outcome": "An intuitive user flow for discovering and joining projects.",
+      "proof": {
+        "video_description": "Walkthrough of the discovery and join process.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/4"
+      },
+      "timeline": "5–7 days",
+      "payout": "600 USDC + 200 Team Points"
+    },
+    {
+      "title": "Establish Communication/Review Layer",
+      "outcome": "A communication system for project reviews and feedback.",
+      "proof": {
+        "video_description": "Demonstration of the communication features in use.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/5"
+      },
+      "timeline": "8–12 days",
+      "payout": "700 USDC + 250 Team Points"
+    },
+    {
+      "title": "Build Reputation/Rewards System",
+      "outcome": "A functioning reputation and rewards system for contributors.",
+      "proof": {
+        "video_description": "Showcasing how the reputation system works.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/6"
+      },
+      "timeline": "10–14 days",
+      "payout": "900 USDC + 300 Team Points"
+    },
+    {
+      "title": "Conduct Community Testing",
+      "outcome": "Feedback from community testing to refine the platform.",
+      "proof": {
+        "video_description": "Summary of community feedback and testing results.",
+        "pull_request_url": "https://github.com/<org>/<repo>/pull/7"
+      },
+      "timeline": "7–10 days",
+      "payout": "500 USDC + 150 Team Points"
+    }
+  ]
+}

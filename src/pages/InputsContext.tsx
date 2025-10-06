@@ -165,11 +165,11 @@ const InputsContext = () => {
 
                   {/* Dependencies */}
                   <div className="space-y-2">
-                    <label className="text-sm font-bold text-card-foreground">Additional notes</label>
+                    <label className="text-sm font-semibold text-gray-900">Additional notes</label>
                     <Textarea
                       value={dependencies}
                       onChange={(e) => setDependencies(e.target.value)}
-                      className="min-h-16 text-base bg-muted border-border resize-none"
+                      className="min-h-16 text-base md:text-sm bg-muted border-border resize-none"
                       placeholder="Any important details, requirements, or context that would help the developer..."
                     />
                   </div>
