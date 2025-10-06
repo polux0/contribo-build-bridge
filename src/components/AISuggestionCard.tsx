@@ -21,9 +21,17 @@ interface AISuggestionCardProps {
   milestones: string | any[];
   isGenerating: boolean;
   onInsert?: () => void;
+  onTotalBudgetChange?: (budget: string, currency: string) => void;
+  onTotalTimelineChange?: (timeline: string) => void;
 }
 
-const AISuggestionCard = ({ milestones, isGenerating, onInsert }: AISuggestionCardProps) => {
+const AISuggestionCard = ({ 
+  milestones, 
+  isGenerating, 
+  onInsert, 
+  onTotalBudgetChange, 
+  onTotalTimelineChange 
+}: AISuggestionCardProps) => {
   const [milestoneList, setMilestoneList] = useState<Milestone[]>([]);
   const [newMilestoneIds, setNewMilestoneIds] = useState<Set<string>>(new Set());
   const [totalTimeline, setTotalTimeline] = useState<string>("");
@@ -104,7 +112,7 @@ const AISuggestionCard = ({ milestones, isGenerating, onInsert }: AISuggestionCa
         return total + amount;
       }, 0);
       
-      setTotalTimeline(`${totalDays} days`);
+      setTotalTimeline(`${totalDays}`);
       setTotalBudget(`${totalAmount}`);
     } else {
       setTotalTimeline("");
@@ -145,10 +153,23 @@ const AISuggestionCard = ({ milestones, isGenerating, onInsert }: AISuggestionCa
 
   const handleTimelineChange = (value: string) => {
     setTotalTimeline(value);
+    if (onTotalTimelineChange) {
+      onTotalTimelineChange(value);
+    }
   };
 
   const handleBudgetChange = (value: string) => {
     setTotalBudget(value);
+    if (onTotalBudgetChange) {
+      onTotalBudgetChange(value, selectedCurrency);
+    }
+  };
+
+  const handleCurrencyChange = (currency: string) => {
+    setSelectedCurrency(currency);
+    if (onTotalBudgetChange) {
+      onTotalBudgetChange(totalBudget, currency);
+    }
   };
 
   const currencies = [
@@ -197,12 +218,15 @@ const AISuggestionCard = ({ milestones, isGenerating, onInsert }: AISuggestionCa
                 <div className="flex justify-center gap-6 text-sm">
                   <div className="text-center">
                     <span className="font-medium text-gray-600">Total Timeline:</span>
-                    <Input
-                      value={totalTimeline}
-                      onChange={(e) => handleTimelineChange(e.target.value)}
-                      className="text-sm w-32 text-center mt-1"
-                      placeholder="e.g., 30 days"
-                    />
+                    <div className="flex items-center gap-1 mt-1">
+                      <Input
+                        value={totalTimeline}
+                        onChange={(e) => handleTimelineChange(e.target.value)}
+                        className="text-sm w-20 text-center h-8"
+                        placeholder="30"
+                      />
+                      <span className="text-sm text-gray-500">days</span>
+                    </div>
                   </div>
                   <div className="text-center">
                     <span className="font-medium text-gray-600">Total Budget:</span>
@@ -210,10 +234,10 @@ const AISuggestionCard = ({ milestones, isGenerating, onInsert }: AISuggestionCa
                       <Input
                         value={totalBudget}
                         onChange={(e) => handleBudgetChange(e.target.value)}
-                        className="text-sm w-20 text-center"
-                        placeholder="e.g., 5000"
+                        className="text-sm w-20 text-center h-8"
+                        placeholder="5000"
                       />
-                      <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
+                      <Select value={selectedCurrency} onValueChange={handleCurrencyChange}>
                         <SelectTrigger className="w-16 h-8 text-xs">
                           <SelectValue />
                         </SelectTrigger>

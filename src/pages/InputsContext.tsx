@@ -73,7 +73,13 @@ const InputsContext = () => {
         designLink,
         dependencies,
         files: uploadedFiles,
-        milestoneList: projectData.milestoneList || []
+        milestoneList: projectData.milestoneList || [],
+        // Preserve any existing milestone data
+        milestones: projectData.milestones || [],
+        totalReward: projectData.totalReward || 0,
+        totalTimeline: projectData.totalTimeline || 0,
+        currency: projectData.currency || 'USDC',
+        complexity: projectData.complexity || 'medium'
       } 
     });
   };

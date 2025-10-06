@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Edit2, Save, X, Video, GitPullRequest, Clock, DollarSign } from "lucide-react";
+import { Video, GitPullRequest, Edit2, Save, X } from "lucide-react";
 
 interface Milestone {
   id: string;
@@ -25,7 +25,7 @@ interface MilestoneCardProps {
 }
 
 const MilestoneCard = ({ milestone, onUpdate, onDelete, isNew = false }: MilestoneCardProps) => {
-  const [isEditing, setIsEditing] = useState(isNew); // Start in edit mode if it's a new milestone
+  const [isEditing, setIsEditing] = useState(isNew);
   const [editedMilestone, setEditedMilestone] = useState(milestone);
 
   // Extract meaningful description from URLs
@@ -190,6 +190,7 @@ const MilestoneCard = ({ milestone, onUpdate, onDelete, isNew = false }: Milesto
 
           </div>
         </div>
+        {/* Removed payout section - no longer displayed in describe-need section */}
       </div>
     </Card>
   );

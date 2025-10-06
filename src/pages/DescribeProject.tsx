@@ -19,7 +19,7 @@ const steps = [
 const DescribeProject = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [description, setDescription] = useState("Add wallet login and protect routes with SIWE");
+  const [description, setDescription] = useState(""); // Start with empty string
   const [milestones, setMilestones] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [milestoneList, setMilestoneList] = useState<any[]>([]);
@@ -27,6 +27,11 @@ const DescribeProject = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
   const [lastGeneratedDescription, setLastGeneratedDescription] = useState("");
+  
+  // Add state for total budget and timeline
+  const [totalBudget, setTotalBudget] = useState<string>("");
+  const [totalTimeline, setTotalTimeline] = useState<string>("");
+  const [selectedCurrency, setSelectedCurrency] = useState<string>("USDC");
   
   useEffect(() => {
     // Initialize with data from previous step
@@ -41,26 +46,27 @@ const DescribeProject = () => {
       const templateDesc = `Implement ${location.state.template.title}`;
       setDescription(templateDesc);
       generateMilestones(templateDesc);
-    } else {
-      // Generate initial milestones
-      generateMilestones(description);
     }
+    // Remove the else clause that auto-generates milestones on initial load
   }, [location.state]);
 
-  // Improved debounced milestone generation with immediate clearing
+  // Enhanced debounced milestone generation with better typing detection
   useEffect(() => {
+    // Don't generate if description is empty
     if (!description.trim()) {
       setMilestoneList([]);
       setMilestones("");
       setDetectedIntent(null);
+      setIsTyping(false);
       return;
     }
     
-    // If description changed, immediately clear old milestones
+    // If description changed, immediately clear old milestones and show typing indicator
     if (description !== lastGeneratedDescription) {
       setMilestoneList([]);
       setMilestones("");
       setDetectedIntent(null);
+      setIsTyping(true);
     }
     
     // Clear existing timeout
@@ -68,14 +74,11 @@ const DescribeProject = () => {
       clearTimeout(typingTimeout);
     }
     
-    // Set typing state
-    setIsTyping(true);
-    
-    // Set new timeout
+    // Set new timeout - wait for user to stop typing
     const newTimeout = setTimeout(() => {
       setIsTyping(false);
       generateMilestones(description);
-    }, 2000); // Wait 2 seconds after user stops typing
+    }, 1500); // Wait 1.5 seconds after user stops typing
     
     setTypingTimeout(newTimeout);
     
@@ -131,7 +134,10 @@ const DescribeProject = () => {
         description: description,
         milestones: milestones,
         milestoneList: milestoneList,
-        detectedIntent: detectedIntent
+        detectedIntent: detectedIntent,
+        totalBudget: totalBudget,
+        totalTimeline: totalTimeline,
+        selectedCurrency: selectedCurrency
       } 
     });
   };
@@ -143,6 +149,15 @@ const DescribeProject = () => {
   const handleAIAction = (action: string) => {
     // For now, just regenerate milestones with the same description
     generateMilestones(description);
+  };
+
+  const handleTotalBudgetChange = (budget: string, currency: string) => {
+    setTotalBudget(budget);
+    setSelectedCurrency(currency);
+  };
+
+  const handleTotalTimelineChange = (timeline: string) => {
+    setTotalTimeline(timeline);
   };
 
   return (
@@ -186,7 +201,7 @@ const DescribeProject = () => {
                       className={`min-h-14 text-base bg-muted border-border resize-none ${
                         !description.trim() ? 'border-red-300' : ''
                       }`}
-                      placeholder="Describe what you need..."
+                      placeholder="Add wallet login and protect routes with SIWE"
                     />
                     <p className="text-xs text-muted-foreground">
                       Be specific about what you want to build. Include technical requirements, features, and any constraints. The more detail you provide, the better we can match you with the right developers.
@@ -204,12 +219,22 @@ const DescribeProject = () => {
                       milestones={milestoneList}
                       isGenerating={isGenerating}
                       onInsert={handleInsertSuggestion}
+                      onTotalBudgetChange={handleTotalBudgetChange}
+                      onTotalTimelineChange={handleTotalTimelineChange}
                     />
                   )}
 
-                  {/* Typing indicator */}
+                  {/* Enhanced typing indicator */}
                   {isTyping && description.trim() && (
                     <div className="flex items-center space-x-2 text-sm text-gray-500">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                      <span>Waiting for you to finish typing...</span>
+                    </div>
+                  )}
+
+                  {/* Generating indicator */}
+                  {isGenerating && (
+                    <div className="flex items-center space-x-2 text-sm text-blue-600">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
                       <span>Generating milestones...</span>
                     </div>
