@@ -199,15 +199,14 @@ const AISuggestionCard = ({
         </div>
       )}
 
-      {/* Add Milestone Button - Moved to be right below milestone cards */}
-      <div className="flex justify-end">
+      {/* Add Milestone Button - Updated to match RewardTimeline styling exactly */}
+      <div className="flex justify-center">
         <Button 
           onClick={handleAddMilestone}
-          variant="outline" 
-          size="sm"
-          className="flex items-center gap-2"
+          className="h-8 px-3 text-xs w-full"
+          variant="outline"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-3 w-3 mr-1" />
           Add Milestone
         </Button>
       </div>
