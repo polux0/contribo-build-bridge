@@ -7,6 +7,8 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProgressStepper from "@/components/ProgressStepper";
 import ApplicationSuccessModal from "@/components/ApplicationSuccessModal";
+import { createProjectWithMilestones } from "@/lib/supabase/projects";
+import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
 import { Check } from "lucide-react";
 
 const steps = [
@@ -20,9 +22,12 @@ const steps = [
 const PreviewPublish = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, loading } = useUnifiedAuth();
   
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [publishError, setPublishError] = useState<string | null>(null);
 
   // Get all data from previous steps
   const projectData = location.state || {
@@ -43,18 +48,112 @@ const PreviewPublish = () => {
     return `${projectData.totalTimeline || 0} days`;
   };
 
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show authentication required state
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-4xl mx-auto mt-8">
+            <Card className="p-8 text-center">
+              <div className="space-y-6">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                    Authentication Required
+                  </h1>
+                  <p className="text-gray-600">
+                    Please sign in to create a project.
+                  </p>
+                </div>
+                
+                <div className="flex justify-center">
+                  <Button 
+                    onClick={() => navigate("/hiring/describe-project")}
+                    className="bg-black hover:bg-gray-800 text-white px-8 py-3"
+                  >
+                    Go to Project Creation
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
   const handleEditPrevious = () => {
     navigate("/hiring/reward-timeline", { state: projectData });
   };
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
     if (!isConfirmed) return;
     
-    // TODO: Implement actual publish logic here
-    console.log("Publishing project:", projectData);
+    console.log("User authentication status:", user);
+    console.log("Project data:", projectData);
     
-    // Show success modal instead of alert
-    setShowSuccessModal(true);
+    // Check if user is authenticated
+    if (!user) {
+      setPublishError('Please sign in to create a project');
+      return;
+    }
+    
+    const userId = user.id;
+    
+    setIsPublishing(true);
+    setPublishError(null);
+    
+    try {
+      // Prepare project data for database
+      const projectDataForDb = {
+        title: projectData.title || 'Untitled Project',
+        description: projectData.description,
+        totalBudget: projectData.totalReward || 0,
+        totalTimeline: projectData.totalTimeline || 0,
+        currency: projectData.currency || 'USDC',
+        complexity: projectData.complexity || 'medium',
+        repoUrl: projectData.repoUrl,
+        designLink: projectData.designLink,
+        dependencies: projectData.dependencies,
+        uploadedFiles: projectData.files || [], // File objects for Supabase Storage upload
+        milestones: projectData.milestones || []
+      };
+
+      console.log("Attempting to create project with data:", projectDataForDb);
+      console.log("User ID:", userId);
+
+      // Create project in database
+      const result = await createProjectWithMilestones(userId, projectDataForDb);
+      
+      console.log("Database result:", result);
+      
+      if (result.success) {
+        console.log("Project created successfully:", result.projectId);
+        console.log("Showing success modal...");
+        setShowSuccessModal(true);
+      } else {
+        console.error("Failed to create project:", result.error);
+        setPublishError(result.error || 'Failed to create project');
+      }
+    } catch (error) {
+      console.error("Error publishing project:", error);
+      setPublishError(error instanceof Error ? error.message : 'Unknown error occurred');
+    } finally {
+      setIsPublishing(false);
+    }
   };
 
   const handleCloseSuccessModal = () => {
@@ -137,11 +236,27 @@ const PreviewPublish = () => {
                     </Button>
                     <Button
                       onClick={handlePublish}
-                      disabled={!isConfirmed}
+                      disabled={!isConfirmed || isPublishing}
                       className="bg-contribo-black hover:bg-gray-800 text-white font-medium px-12 py-2 h-11 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Publish Project
+                      {isPublishing ? 'Publishing...' : 'Publish Project'}
                     </Button>
+                    
+                    {publishError && (
+                      <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <p className="text-sm text-red-700">
+                          Error: {publishError}
+                        </p>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setPublishError(null)}
+                          className="mt-2"
+                        >
+                          Dismiss
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </Card>

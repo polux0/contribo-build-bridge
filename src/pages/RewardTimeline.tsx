@@ -9,7 +9,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProgressStepper from "@/components/ProgressStepper";
 import RewardMilestoneCard from "@/components/RewardMilestoneCard";
-import { Plus, DollarSign, Calendar, X } from "lucide-react";
+import { Plus, DollarSign, Calendar, X } from "lucide-react"
 
 const steps = [
   { number: 1, label: "Describe", sublabel: "Need" },

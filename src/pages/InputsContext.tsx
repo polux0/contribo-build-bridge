@@ -7,7 +7,9 @@ import { Textarea } from "@/components/ui/textarea";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProgressStepper from "@/components/ProgressStepper";
-import { Upload } from "lucide-react";
+import { Upload, X } from "lucide-react";
+import { useUnifiedAuth } from "@/contexts/UnifiedAuthContext";
+import { toast } from "@/hooks/use-toast";
 
 const steps = [
   { number: 1, label: "Describe", sublabel: "Need" },
@@ -20,6 +22,7 @@ const steps = [
 const InputsContext = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useUnifiedAuth();
   
   const [repoUrl, setRepoUrl] = useState("");
   const [designLink, setDesignLink] = useState("");
@@ -37,6 +40,7 @@ const InputsContext = () => {
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files) {
+      console.log("Files uploaded:", Array.from(files).map(f => f.name));
       setUploadedFiles(Array.from(files));
     }
   };
@@ -49,6 +53,7 @@ const InputsContext = () => {
     event.preventDefault();
     const files = event.dataTransfer.files;
     if (files) {
+      console.log("Files dropped:", Array.from(files).map(f => f.name));
       setUploadedFiles(Array.from(files));
     }
   };
@@ -66,22 +71,46 @@ const InputsContext = () => {
   };
 
   const handleNext = () => {
-    navigate("/hiring/reward-timeline", { 
-      state: { 
-        ...projectData,
-        repoUrl,
-        designLink,
-        dependencies,
-        files: uploadedFiles,
-        milestoneList: projectData.milestoneList || [],
-        // Preserve any existing milestone data
-        milestones: projectData.milestones || [],
-        totalReward: projectData.totalReward || 0,
-        totalTimeline: projectData.totalTimeline || 0,
-        currency: projectData.currency || 'USDC',
-        complexity: projectData.complexity || 'medium'
-      } 
-    });
+    // Check if user is authenticated and has email
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to continue creating your project.",
+        variant: "destructive",
+      });
+      navigate("/hiring/describe-project");
+      return;
+    }
+
+    if (!user.email) {
+      toast({
+        title: "Email required",
+        description: "Please provide your email address to continue.",
+        variant: "destructive",
+      });
+      navigate("/hiring/describe-project");
+      return;
+    }
+
+    const nextState = { 
+      ...projectData,
+      repoUrl,
+      designLink,
+      dependencies,
+      files: uploadedFiles, // Pass actual File objects for storage upload
+      milestoneList: projectData.milestoneList || [],
+      // Preserve any existing milestone data
+      milestones: projectData.milestones || [],
+      totalReward: projectData.totalReward || 0,
+      totalTimeline: projectData.totalTimeline || 0,
+      currency: projectData.currency || 'USDC',
+      complexity: projectData.complexity || 'medium'
+    };
+    
+    console.log("Navigating to reward-timeline with state:", nextState);
+    console.log("Uploaded files:", uploadedFiles.map(f => f.name));
+    
+    navigate("/hiring/reward-timeline", { state: nextState });
   };
 
   return (
@@ -160,8 +189,18 @@ const InputsContext = () => {
                         <p className="text-xs font-medium text-card-foreground">Uploaded files:</p>
                         <div className="space-y-1">
                           {uploadedFiles.map((file, index) => (
-                            <div key={index} className="text-xs text-muted-foreground bg-muted px-3 py-1 rounded">
-                              {file.name} ({(file.size / 1024).toFixed(1)} KB)
+                            <div key={index} className="flex items-center justify-between text-xs text-muted-foreground bg-muted px-3 py-1 rounded">
+                              <span>{file.name} ({(file.size / 1024).toFixed(1)} KB)</span>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+                                }}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1 h-6 w-6"
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
                             </div>
                           ))}
                         </div>
