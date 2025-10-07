@@ -199,17 +199,19 @@ const AISuggestionCard = ({
         </div>
       )}
 
-      {/* Add Milestone Button - Updated to match RewardTimeline styling exactly */}
-      <div className="flex justify-center">
-        <Button 
-          onClick={handleAddMilestone}
-          className="h-8 px-3 text-xs w-full"
-          variant="outline"
-        >
-          <Plus className="h-3 w-3 mr-1" />
-          Add Milestone
-        </Button>
-      </div>
+      {/* Add Milestone Button - Only show when milestones are generated */}
+      {milestoneList.length > 0 && (
+        <div className="flex justify-center">
+          <Button 
+            onClick={handleAddMilestone}
+            className="h-8 px-3 text-xs w-full"
+            variant="outline"
+          >
+            <Plus className="h-3 w-3 mr-1" />
+            Add Milestone
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProgressStepper from "@/components/ProgressStepper";
-import MilestoneCard from "@/components/MilestoneCard";
+import RewardMilestoneCard from "@/components/RewardMilestoneCard";
 import { Plus, DollarSign, Calendar, X } from "lucide-react";
 
 const steps = [
@@ -95,20 +95,24 @@ const RewardTimeline = () => {
     
     // Calculate equal distribution
     const equalPercentage = 100 / milestones.length;
-    const baseRewardAmount = totalBudget / milestones.length;
-    const baseTimelineDays = totalTimeline / milestones.length;
+    const baseRewardAmount = Math.floor(totalBudget / milestones.length * 100) / 100; // Round down to 2 decimals
+    const baseTimelineDays = Math.floor(totalTimeline / milestones.length);
+    
+    // Calculate remainder to ensure exact totals
+    const rewardRemainder = totalBudget - (baseRewardAmount * milestones.length);
+    const timelineRemainder = totalTimeline - (baseTimelineDays * milestones.length);
     
     return milestones.map((milestone, index) => {
-      // For the last milestone, use remaining budget/timeline to ensure exact totals
+      // For the last milestone, add the remainder to ensure exact totals
       const isLastMilestone = index === milestones.length - 1;
       
       const rewardAmount = isLastMilestone 
-        ? (totalBudget - (baseRewardAmount * (milestones.length - 1))).toFixed(2)
+        ? (baseRewardAmount + rewardRemainder).toFixed(2)
         : baseRewardAmount.toFixed(2);
         
       const timelineDays = isLastMilestone
-        ? Math.ceil(totalTimeline - (baseTimelineDays * (milestones.length - 1)))
-        : Math.floor(baseTimelineDays);
+        ? baseTimelineDays + timelineRemainder
+        : baseTimelineDays;
 
       return {
         ...milestone,
@@ -248,14 +252,14 @@ const RewardTimeline = () => {
                   {/* Milestones List */}
                   {milestones.length > 0 ? (
                     <div className="space-y-4">
-                      {milestones.map((milestone) => (
-                        <MilestoneCard
-                          key={milestone.id}
-                          milestone={milestone}
-                          onUpdate={handleUpdateMilestone}
-                          onDelete={handleDeleteMilestone}
-                        />
-                      ))}
+                        {milestones.map((milestone) => (
+                          <RewardMilestoneCard
+                            key={milestone.id}
+                            milestone={milestone}
+                            onUpdate={handleUpdateMilestone}
+                            onDelete={handleDeleteMilestone}
+                          />
+                        ))}
                     </div>
                   ) : (
                     <div className="text-center py-8 text-gray-500">
@@ -280,7 +284,7 @@ const RewardTimeline = () => {
                 {milestones.length > 0 && (
                   <div className="bg-blue-50 rounded-lg p-4">
                     <h3 className="text-lg font-semibold text-blue-900 mb-2">Project Summary</h3>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="flex justify-between items-center">
                       <div>
                         <span className="text-sm font-medium text-blue-700">Total Reward:</span>
                         <span className="ml-2 text-lg font-bold text-blue-900">
