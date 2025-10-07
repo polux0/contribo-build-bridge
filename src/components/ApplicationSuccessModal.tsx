@@ -105,6 +105,7 @@ const ApplicationSuccessModal: React.FC<ApplicationSuccessModalProps> = ({
     window.open(farcasterUrl, '_blank');
   };
 
+
   return (
     <>
       {showConfetti && (
@@ -158,7 +159,7 @@ const ApplicationSuccessModal: React.FC<ApplicationSuccessModalProps> = ({
                 className="w-full bg-contribo-black hover:bg-gray-800"
               >
                 <Share2 className="w-4 h-4 mr-2" />
-                Share Your Achievement
+                Invite Collaborators
               </Button>
               
               <div className="grid grid-cols-2 gap-2">
